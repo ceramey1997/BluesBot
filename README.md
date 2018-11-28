@@ -1,2 +1,2 @@
-This is our readme
+This is our README
 
