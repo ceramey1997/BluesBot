@@ -34,7 +34,6 @@ class bot_plugin(object):
     def get_playlist(self, playlist, username=None):
         if username is None:
             username = self.spotify.current_user()['id']
-        
         playlists = self.spotify.user_playlists(username)['items']
         for p in playlists:
             if p['name'] == playlist:

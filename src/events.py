@@ -38,12 +38,18 @@ class Event_Message:
         artist = artist.strip()
         album_info = spotify_object.get_album(album, artist)
         song_queue[message] =  album_info
-        print(song_queue)
         msg = '"' + message + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
     async def message_play_playlist(self, client, message, channel):
-        pass
+        playlist, username = message.split(',')
+        playlist = playlist.strip()
+        username = username.strip()
+        playlist_info = spotify_object.get_playlist(playlist, username)
+        song_queue[playlist] = playlist_info
+        msg = '"' + playlist + '" has been added to the song queue'
+        print(song_queue)
+        await client.send_message(channel, msg)
 
     async def message_queue(self, client, message):
         index = 1
