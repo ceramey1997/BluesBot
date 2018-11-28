@@ -37,7 +37,8 @@ class bot_plugin(object):
             tracks_final.append(track_temp + track['name'])
         return tracks_final
 
-    def get_album(self, album, artist):
+    def get_album(self, album_artist):
+        album, artist = album_artist.split(",")
         artists_list = self.spotify.search(artist,type='artist')['artists']['items']
         for art in artists_list:
             if art['name'].lower() == artist:
@@ -56,15 +57,3 @@ class bot_plugin(object):
                 track_temp += artist['name'] + ' '
             tracks_final.append(track_temp + track['name'])
         return tracks_final
-
-    
-        
-
-
-
-# print(results.keys())
-bot = bot_plugin()
-sp = bot.spotify
-
-# print(bot.get_playlist('My Shazam Tracks','jay101pk'))
-print(bot.get_album('shatter me','lindsey stirling'))
