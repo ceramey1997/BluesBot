@@ -10,7 +10,14 @@ class Event_Message:
             await self.message_hello(client, message)
 
         if message.content.startswith('!play'):
-            await self.message_play(client, message)
+            channel = message.channel
+            msg = message.content.replace('!play ', '')
+            if msg.startswith('album'):
+                msg = msg.replace('album ', '')
+                await self.message_play_album(client, msg, channel)
+            elif msg.startswith('playlist'):
+                msg = msg.replace('playlist ', '')
+                await self.message_play_playlist(client, msg, channel)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -25,15 +32,18 @@ class Event_Message:
         msg = 'Hello {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
 
-    async def message_play(self, client, message):
-        album_artist= message.content.replace("!play ", "")
-        album, artist = album_artist.split(",")
+    async def message_play_album(self, client, message, channel):
+        album, artist = message.split(",")
         album = album.strip()
         artist = artist.strip()
         album_info = spotify_object.get_album(album, artist)
-        song_queue[message.content[5:]] =  album_info
-        msg = '"' + message.content[5:] + '" has been added to the song queue'
-        await client.send_message(message.channel, msg)
+        song_queue[message] =  album_info
+        print(song_queue)
+        msg = '"' + message + '" has been added to the song queue'
+        await client.send_message(channel, msg)
+
+    async def message_play_playlist(self, client, message, channel):
+        pass
 
     async def message_queue(self, client, message):
         index = 1
