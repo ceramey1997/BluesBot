@@ -9,4 +9,9 @@ os.environ['SPOTIPY_REDIRECT_URI'] = 'https://www.google.com/'
 token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
 sp = spotipy.Spotify(auth=token)  
 results = sp.search(q='artist:coldplay', type='artist')
-print(results)
+# print(results.keys())
+results = sp.current_user_playlists()
+for item in results['items']:
+    # print(item)
+    print(sp.user_playlist('jay101pk', playlist_id=item['id'], fields='tracks'))
+      
