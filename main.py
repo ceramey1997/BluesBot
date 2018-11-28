@@ -1,8 +1,13 @@
 # Work with Python 3.6
 import discord
 import src.bluesbot
+import json
 
-TOKEN = 'NTE3MzY1NTcwMjg3Njk3OTIy.DuBKKQ.Ge6SrYlpjfxv7s7vRdjiyYC3TRI'
+f = open('creds.json', 'r')
+creds = json.loads(f.read())
+f.close()
+
+TOKEN = creds['DISCORD_TOKEN']
 
 client = discord.Client()
 bot = src.bluesbot.BluesBot()
