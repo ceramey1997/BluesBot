@@ -1,8 +1,9 @@
 import discord
 import asyncio
+from spotify_plugin import bot_plugin
 
 song_queue = {}
-
+spotify_object = bot_plugin()
 class Event_Message:
     async def message_recieved(self, client, message):
         if message.content.startswith('!hello'):
@@ -14,11 +15,16 @@ class Event_Message:
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
+        if message.content.startswith('!join'):
+            await self.join(client, message)
+
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
 
     async def message_play(self, client, message):
+        album, artist = message.split()
+        album = spotify_object.get_album(message)
         song_queue[message.content[5:]] =  'url'
         msg = '"' + message.content[5:] + '" has been added to the song queue'
         await client.send_message(message.channel, msg)
@@ -32,3 +38,6 @@ class Event_Message:
 
         await client.send_message(message.channel, msg)
 
+    async def join(self, client, message):
+        channel = client.get_channel('501955815222149154')
+        await client.join_voice_channel(channel)
