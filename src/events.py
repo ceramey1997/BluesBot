@@ -14,6 +14,9 @@ class Event_Message:
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
+        if message.content.startswith('!join'):
+            await self.join(client, message)
+
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
@@ -32,3 +35,6 @@ class Event_Message:
 
         await client.send_message(message.channel, msg)
 
+    async def join(self, client, message):
+        channel = client.get_channel('501955815222149154')
+        await client.join_voice_channel(channel)
