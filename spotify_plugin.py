@@ -1,12 +1,16 @@
 import spotipy
 import os
 import spotipy.util as Util
+import json
 class bot_plugin(object):
 
     def __init__(self):
-        os.environ['SPOTIPY_CLIENT_ID'] = '6685f1fa024b4580b165fd845b74e8e4'
-        os.environ['SPOTIPY_CLIENT_SECRET'] = '02c2f1a11ef141898921ba58949bf41c'
-        os.environ['SPOTIPY_REDIRECT_URI'] = 'https://www.google.com/'
+        f = open('spotify_creds.json','r')
+        creds = json.loads(f.read())
+        f.close()
+        os.environ['SPOTIPY_CLIENT_ID'] = creds['SPOTIPY_CLIENT_ID']
+        os.environ['SPOTIPY_CLIENT_SECRET'] = creds['SPOTIPY_CLIENT_SECRET']
+        os.environ['SPOTIPY_REDIRECT_URI'] = creds['SPOTIPY_REDIRECT_URI']
 
         self.token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=self.token)
