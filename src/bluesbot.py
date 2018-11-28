@@ -1,29 +1,22 @@
 # Work with Python 3.6
 import discord
-import events
+import src.events
 
-TOKEN = 'NTE3MzY1NTcwMjg3Njk3OTIy.DuBKKQ.Ge6SrYlpjfxv7s7vRdjiyYC3TRI'
+event_msg = src.events.Event_Message()
 
-client = discord.Client()
-event_msg = events.Event_Message()
+class BluesBot:
+    async def on_message_start(self, client, message):
+        # we do not want the bot to reply to itself
+        if message.author == client.user:
+            return
 
-@client.event
-async def on_message(message):
-    # we do not want the bot to reply to itself
-    if message.author == client.user:
-        return
+        if message.content.startswith('!'):
+            await event_msg.message_recieved(client, message)
 
-    if message.content.startswith('!'):
-        await event_msg.message_recieved(client, message)
+    async def on_ready_start(self, client):
+        print('Logged in as')
+        print(client.user.name)
+        print(client.user.id)
+        print('------')
 
-@client.event
-async def on_ready():
-    print('Logged in as')
-    print(client.user.name)
-    print(client.user.id)
-    print('------')
-
-client.run(TOKEN)
-#server = discord.Server()
-#client.get_server(server)
 
