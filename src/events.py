@@ -19,7 +19,7 @@ class Event_Message:
             await self.join(client, message)
         
         if message.content.startswith('!help'):
-            await self.message_help(client, message)
+            await self.help(client, message)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -28,7 +28,6 @@ class Event_Message:
     async def message_play(self, client, message):
         album_artist= message.content.replace("!play ", "")
         album, artist = album_artist.split(",")
-        import pdb; pdb.set_trace()
         album = album.strip()
         artist = artist.strip()
         album_info = spotify_object.get_album(album, artist)
@@ -50,7 +49,7 @@ class Event_Message:
         await client.join_voice_channel(channel)
 
     async def help(self, client, message):
-        message = "!play - plays an album. input is as \"!play album,artist\""
-        message = message + "\n!queue - returns the music queue"
-        message = message + "\n!join - joins the general channel\n!hello - says hello back"
-        await client.send_message(message.channel, message)
+        msg = "!play - plays an album. input is as \"!play album,artist\""
+        msg = msg + "\n!queue - returns the music queue"
+        msg = msg + "\n!join - joins the general channel\n!hello - says hello back"
+        await client.send_message(message.channel, msg)
