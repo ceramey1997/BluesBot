@@ -1,11 +1,11 @@
 # Work with Python 3.6
 import discord
-import src.bluesbot
+from src import bluesbot
 
 TOKEN = 'NTE3MzY1NTcwMjg3Njk3OTIy.DuBKKQ.Ge6SrYlpjfxv7s7vRdjiyYC3TRI'
 
 client = discord.Client()
-bot = src.bluesbot.BluesBot()
+bot = bluesbot.BluesBot()
 #TODO: Figure out how to get the server without causing an infinite loop
 
 @client.event

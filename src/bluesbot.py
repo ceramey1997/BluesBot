@@ -1,8 +1,8 @@
 # Work with Python 3.6
 import discord
-import src.events
+from src import events
 
-event_msg = src.events.Event_Message()
+event_msg = events.Event_Message()
 
 class BluesBot:
     async def on_message_start(self, client, message):
