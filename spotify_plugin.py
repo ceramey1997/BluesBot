@@ -5,6 +5,18 @@ import spotipy
 import spotipy.util as Util
 
 
+class SpotifyError(Exception):
+    pass
+class ArtistError(SpotifyError):
+    pass
+class AlbumError(SpotifyError):
+    pass
+class UserError(SpotifyError):
+    pass
+class PlaylistError(SpotifyError):
+    pass
+
+
 class bot_plugin(object):
 
     def __init__(self):
@@ -27,6 +39,9 @@ class bot_plugin(object):
         for p in playlists:
             if p['name'] == playlist:
                 break
+        else:
+            raise PlaylistError
+
         tracks_temp = self.spotify.user_playlist_tracks(username, p['id'])
         tracks_final= []
         for track in tracks_temp['items']:
@@ -42,11 +57,15 @@ class bot_plugin(object):
         for art in artists_list:
             if art['name'].lower() == artist:
                 break
+        else:
+            raise ArtistError
         
         albums_list = self.spotify.artist_albums(art['id'])
         for alb in albums_list['items']:
             if alb['name'].lower() == album:
                 break
+        else:
+            raise AlbumError
         
         tracks_temp = self.spotify.album_tracks(alb['id'])
         tracks_final= []
