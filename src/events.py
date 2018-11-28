@@ -1,9 +1,17 @@
 import discord
+<<<<<<< HEAD
 from  src.users import user
 
 song_queue = {}
 users = {}
 
+=======
+import asyncio
+from spotify_plugin import bot_plugin
+
+song_queue = {}
+spotify_object = bot_plugin()
+>>>>>>> eb3d3b40f696fb1b95901f1cb1c0796288a1d7cb
 class Event_Message:
     async def message_recieved(self, client, message):
         if message.author.name not in users:
@@ -14,13 +22,25 @@ class Event_Message:
             await self.message_hello(client, message)
 
         if message.content.startswith('!play'):
-            await self.message_play(client, message)
+            channel = message.channel
+            msg = message.content.replace('!play ', '')
+            if msg.startswith('album'):
+                msg = msg.replace('album ', '')
+                await self.message_play_album(client, msg, channel)
+            elif msg.startswith('playlist'):
+                msg = msg.replace('playlist ', '')
+                await self.message_play_playlist(client, msg, channel)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
         if message.content.startswith('!history'):
             await self.message_history(client, message)
+        if message.content.startswith('!join'):
+            await self.join(client, message)
+        
+        if message.content.startswith('!help'):
+            await self.help(client, message)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -31,6 +51,25 @@ class Event_Message:
         users[message.author.name].history.insert(0, message.content[6:])
         msg = '"' + message.content[6:] + '" has been added to the song queue'
         await client.send_message(message.channel, msg)
+   
+   async def message_play_album(self, client, message, channel):
+        album, artist = message.split(",")
+        album = album.strip()
+        artist = artist.strip()
+        album_info = spotify_object.get_album(album, artist)
+        song_queue[message] =  album_info
+        msg = '"' + message + '" has been added to the song queue'
+        await client.send_message(channel, msg)
+
+    async def message_play_playlist(self, client, message, channel):
+        playlist, username = message.split(',')
+        playlist = playlist.strip()
+        username = username.strip()
+        playlist_info = spotify_object.get_playlist(playlist, username)
+        song_queue[playlist] = playlist_info
+        msg = '"' + playlist + '" has been added to the song queue'
+        print(song_queue)
+        await client.send_message(channel, msg)
 
     async def message_queue(self, client, message):
         index = 1
@@ -65,8 +104,6 @@ class Event_Message:
             index += 1
         
         await client.send_message(message.channel, msg)
-
-        
 
 '''
 class Event_Ready:
