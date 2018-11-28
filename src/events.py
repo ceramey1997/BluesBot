@@ -23,7 +23,10 @@ class Event_Message:
         await client.send_message(message.channel, msg)
 
     async def message_play(self, client, message):
-        album, artist = message.split()
+        album_artist= message.content.replace("!play ", "")
+        album, artist = album_artist.split(",")
+        album = album.strip()
+        artist = artist.strip()
         album = spotify_object.get_album(message)
         song_queue[message.content[5:]] =  'url'
         msg = '"' + message.content[5:] + '" has been added to the song queue'

@@ -52,8 +52,7 @@ class bot_plugin(object):
             tracks_final.append(track_temp + track['name'])
         return tracks_final
 
-    def get_album(self, album_artist):
-        album, artist = album_artist.split(",")
+    def get_album(self, album, artist):
         artists_list = self.spotify.search(artist,type='artist')['artists']['items']
         for art in artists_list:
             if art['name'].lower() == artist:
