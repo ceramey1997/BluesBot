@@ -1,12 +1,19 @@
-import spotipy
+import json
 import os
+
+import spotipy
 import spotipy.util as Util
+
+
 class bot_plugin(object):
 
     def __init__(self):
-        os.environ['SPOTIPY_CLIENT_ID'] = '6685f1fa024b4580b165fd845b74e8e4'
-        os.environ['SPOTIPY_CLIENT_SECRET'] = '02c2f1a11ef141898921ba58949bf41c'
-        os.environ['SPOTIPY_REDIRECT_URI'] = 'https://www.google.com/'
+        f = open('spotify_creds.json','r')
+        creds = json.loads(f.read())
+        f.close()
+        os.environ['SPOTIPY_CLIENT_ID'] = creds['SPOTIPY_CLIENT_ID']
+        os.environ['SPOTIPY_CLIENT_SECRET'] = creds['SPOTIPY_CLIENT_SECRET']
+        os.environ['SPOTIPY_REDIRECT_URI'] = creds['SPOTIPY_REDIRECT_URI']
 
         self.token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=self.token)
@@ -18,12 +25,32 @@ class bot_plugin(object):
         
         playlists = self.spotify.user_playlists(username)['items']
         for p in playlists:
-            if p == playlist:
+            if p['name'] == playlist:
                 break
         tracks_temp = self.spotify.user_playlist_tracks(username, p['id'])
         tracks_final= []
         for track in tracks_temp['items']:
             track = track['track']
+            track_temp = ''
+            for artist in track['artists']:
+                track_temp += artist['name'] + ' '
+            tracks_final.append(track_temp + track['name'])
+        return tracks_final
+
+    def get_album(self, album, artist):
+        artists_list = self.spotify.search(artist,type='artist')['artists']['items']
+        for art in artists_list:
+            if art['name'].lower() == artist:
+                break
+        
+        albums_list = self.spotify.artist_albums(art['id'])
+        for alb in albums_list['items']:
+            if alb['name'].lower() == album:
+                break
+        
+        tracks_temp = self.spotify.album_tracks(alb['id'])
+        tracks_final= []
+        for track in tracks_temp['items']:
             track_temp = ''
             for artist in track['artists']:
                 track_temp += artist['name'] + ' '
@@ -39,5 +66,5 @@ class bot_plugin(object):
 bot = bot_plugin()
 sp = bot.spotify
 
-print(bot.get_playlist('My Shazam Tracks','jay101pk'))
-        
+# print(bot.get_playlist('My Shazam Tracks','jay101pk'))
+print(bot.get_album('shatter me','lindsey stirling'))

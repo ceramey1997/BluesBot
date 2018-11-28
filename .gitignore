@@ -114,6 +114,9 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+.cache-*
+spotify_creds.json
 # vim
 *.swp
 *.swo
