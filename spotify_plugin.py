@@ -1,7 +1,10 @@
-import spotipy
-import os
-import spotipy.util as Util
 import json
+import os
+
+import spotipy
+import spotipy.util as Util
+
+
 class bot_plugin(object):
 
     def __init__(self):
@@ -22,12 +25,32 @@ class bot_plugin(object):
         
         playlists = self.spotify.user_playlists(username)['items']
         for p in playlists:
-            if p == playlist:
+            if p['name'] == playlist:
                 break
         tracks_temp = self.spotify.user_playlist_tracks(username, p['id'])
         tracks_final= []
         for track in tracks_temp['items']:
             track = track['track']
+            track_temp = ''
+            for artist in track['artists']:
+                track_temp += artist['name'] + ' '
+            tracks_final.append(track_temp + track['name'])
+        return tracks_final
+
+    def get_album(self, album, artist):
+        artists_list = self.spotify.search(artist,type='artist')['artists']['items']
+        for art in artists_list:
+            if art['name'].lower() == artist:
+                break
+        
+        albums_list = self.spotify.artist_albums(art['id'])
+        for alb in albums_list['items']:
+            if alb['name'].lower() == album:
+                break
+        
+        tracks_temp = self.spotify.album_tracks(alb['id'])
+        tracks_final= []
+        for track in tracks_temp['items']:
             track_temp = ''
             for artist in track['artists']:
                 track_temp += artist['name'] + ' '
@@ -43,5 +66,5 @@ class bot_plugin(object):
 bot = bot_plugin()
 sp = bot.spotify
 
-print(bot.get_playlist('My Shazam Tracks','jay101pk'))
-        
+# print(bot.get_playlist('My Shazam Tracks','jay101pk'))
+print(bot.get_album('shatter me','lindsey stirling'))
