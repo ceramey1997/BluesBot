@@ -8,6 +8,7 @@ users = {}
 song_queue = []
 spotify_object = bot_plugin()
 firstFlag = False
+player = None
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -41,6 +42,9 @@ class Event_Message:
 
         if message.content.startswith('!help'):
             await self.help(client, message)
+
+        if message.content.startswith('skip'):
+            await self.message_pause()
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -123,6 +127,7 @@ class Event_Message:
 
     async def message_play_song(self, client, query):
         global firstFlag
+        global player
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
@@ -137,6 +142,13 @@ class Event_Message:
 
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
+
+    async def message_pause(self):
+        global player
+        player.stop()
+
+
+
 '''
 class Event_Ready:
     # on_ready features here
