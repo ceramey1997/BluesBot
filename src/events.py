@@ -26,6 +26,9 @@ class Event_Message:
             elif msg.startswith('playlist'):
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
+            else:
+                await self.play_song(client, msg)
+
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -104,7 +107,13 @@ class Event_Message:
     async def join(self, client, message):
         channel = client.get_channel('501955815222149154')
         vc = await client.join_voice_channel(channel)
-        url = search_yt('ajr weak')
+
+    async def play_song(self, client, query):
+        if not client.is_voice_connected(client.get_server('501955815222149150')):
+            channel = client.get_channel('501955815222149154')
+            vc = await client.join_voice_channel(channel)
+        url = search_yt(query)
+        vc = client.voice_client_in(client.get_server('501955815222149150'))
         player = await vc.create_ytdl_player(url)
         player.start()
 
