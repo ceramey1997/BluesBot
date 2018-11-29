@@ -47,7 +47,7 @@ class Event_Message:
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
-        await client.say(message.channel, msg)
+        await client.send_message(message.channel, msg)
 
     async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
@@ -57,7 +57,6 @@ class Event_Message:
         for song in album_info:
             song_queue.append(song)
         msg = '"' + message + '" has been added to the song queue'
-        await self.change_status(client, song)
         await client.send_message(channel, msg)
 
     async def message_play_playlist(self, client, message, channel):
