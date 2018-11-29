@@ -2,7 +2,19 @@
 import discord
 import src.bluesbot
 import json
+import logging
 from src import bluesbot
+
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.WARNING)
+stream_handler.setFormatter(logging.Formatter('%(asctime)s-%(levelname)s-%(message)s'))
+log.addHandler(stream_handler)
+file_handler = logging.FileHandler('discord.log',mode='a')
+file_handler.set_name(logging.DEBUG)
+file_handler.setFormatter(logging.Formatter('%(asctime)s-%(levelname)s-%(message)s'))
+log.addHandler(file_handler)
 
 f = open('creds.json', 'r')
 creds = json.loads(f.read())
