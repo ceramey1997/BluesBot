@@ -21,10 +21,8 @@ class Event_Message:
         if message.content.startswith('!play'):
             channel = message.channel
             if message.content.startswith('!play album'):
-                # msg = message.content.replace('!play album ', '')
                 await self.message_play_album(client, message, channel)
             elif message.content.startswith('!play playlist'):
-                # msg = message.content.replace('!play playlist ', '')
                 await self.message_play_playlist(client, message, channel)
             else:
                 msg = message.content.replace('!play ', '')
