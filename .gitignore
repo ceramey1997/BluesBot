@@ -116,7 +116,7 @@ dmypy.json
 
 
 .cache-*
-spotify_creds.json
+creds.json
 # vim
 *.swp
 *.swo

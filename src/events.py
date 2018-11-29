@@ -1,17 +1,13 @@
 import discord
-<<<<<<< HEAD
 from  src.users import user
-
-song_queue = {}
-users = {}
-
-=======
+from src.search_engine import search_yt
 import asyncio
 from spotify_plugin import bot_plugin
 
+users = {}
 song_queue = {}
 spotify_object = bot_plugin()
->>>>>>> eb3d3b40f696fb1b95901f1cb1c0796288a1d7cb
+
 class Event_Message:
     async def message_recieved(self, client, message):
         if message.author.name not in users:
@@ -30,6 +26,9 @@ class Event_Message:
             elif msg.startswith('playlist'):
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
+            else:
+                await self.play_song(client, msg)
+
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -38,7 +37,7 @@ class Event_Message:
             await self.message_history(client, message)
         if message.content.startswith('!join'):
             await self.join(client, message)
-        
+
         if message.content.startswith('!help'):
             await self.help(client, message)
 
@@ -51,8 +50,8 @@ class Event_Message:
         users[message.author.name].history.insert(0, message.content[6:])
         msg = '"' + message.content[6:] + '" has been added to the song queue'
         await client.send_message(message.channel, msg)
-   
-   async def message_play_album(self, client, message, channel):
+
+    async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
         album = album.strip()
         artist = artist.strip()
@@ -89,7 +88,7 @@ class Event_Message:
             for key in users:
                 if message.content[9:] == key:
                     username = message.content[9:]
-            
+
         if username == '':
             await client.send_message(message.channel, 'That user does not exist')
             return
@@ -102,8 +101,21 @@ class Event_Message:
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-        
+
         await client.send_message(message.channel, msg)
+
+    async def join(self, client, message):
+        channel = client.get_channel('501955815222149154')
+        vc = await client.join_voice_channel(channel)
+
+    async def play_song(self, client, query):
+        if not client.is_voice_connected(client.get_server('501955815222149150')):
+            channel = client.get_channel('501955815222149154')
+            vc = await client.join_voice_channel(channel)
+        url = search_yt(query)
+        vc = client.voice_client_in(client.get_server('501955815222149150'))
+        player = await vc.create_ytdl_player(url)
+        player.start()
 
 '''
 class Event_Ready:
@@ -118,5 +130,3 @@ class Event_Server_Join:
 class Event_Server_Remove:
     # on_server_remove features here
 '''
-
-

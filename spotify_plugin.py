@@ -20,7 +20,7 @@ class PlaylistError(SpotifyError):
 class bot_plugin(object):
 
     def __init__(self):
-        f = open('spotify_creds.json','r')
+        f = open('creds.json','r')
         creds = json.loads(f.read())
         f.close()
         os.environ['SPOTIPY_CLIENT_ID'] = creds['SPOTIPY_CLIENT_ID']
