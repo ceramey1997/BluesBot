@@ -121,3 +121,4 @@ spotify_creds.json
 *.swp
 *.swo
 
+test.py
