@@ -27,7 +27,7 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.message_play(client, msg, channel)
+                await self.play_song(client, message)
 
 
         if message.content.startswith('!queue'):
@@ -46,10 +46,11 @@ class Event_Message:
         await client.send_message(message.channel, msg)
 
     async def message_play(self, client, message, channel):
-        song_queue.append(message)
-        users[message.author.name].history.insert(0, message)
-        msg = '"' + message + '" has been added to the song queue'
-        await client.send_message(channel, msg)
+        msg = message.replace("!play ", "")
+        song_queue.append(msg)
+        users[message.author.name].history.insert(0, msg)
+        msg_send = '"' + message + '" has been added to the song queue'
+        await client.send_message(channel, msg_send)
 
     async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
