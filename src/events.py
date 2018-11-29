@@ -2,7 +2,7 @@ import discord
 from  src.users import user
 from src.search_engine import search_yt
 import asyncio
-from spotify_plugin import bot_plugin
+from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 
 users = {}
 song_queue = []
@@ -55,7 +55,18 @@ class Event_Message:
         album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
-        album_info = spotify_object.get_album_tracks(album, artist)
+        try:
+            album_info = spotify_object.get_album_tracks(album, artist)
+        except SpotifyError as e:
+            if isinstance(e, AlbumError):
+                msg = 'Invalid album name'
+            elif isinstance(e, ArtistError):
+                msg = 'Invalid artist name'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
@@ -72,7 +83,18 @@ class Event_Message:
         playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
-        playlist_info = spotify_object.get_playlist_tracks(playlist, username)
+        try:
+            playlist_info = spotify_object.get_playlist_tracks(playlist, username)
+        except SpotifyError as e:
+            if isinstance(e, PlaylistError):
+                msg = 'Invalid playlist name'
+            elif isinstance(e, UserError):
+                msg = 'Invalid username'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
