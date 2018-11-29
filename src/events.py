@@ -5,7 +5,7 @@ import asyncio
 from spotify_plugin import bot_plugin
 
 users = {}
-song_queue = {}
+song_queue = []
 spotify_object = bot_plugin()
 
 class Event_Message:
@@ -27,7 +27,7 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.play_song(client, msg)
+                await self.play_song(client, message)
 
 
         if message.content.startswith('!queue'):
@@ -45,18 +45,20 @@ class Event_Message:
         msg = 'Hello {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
 
-    async def message_play(self, client, message):
-        song_queue[message.content[6:]] =  'url'
-        users[message.author.name].history.insert(0, message.content[6:])
-        msg = '"' + message.content[6:] + '" has been added to the song queue'
-        await client.send_message(message.channel, msg)
+    async def message_play(self, client, message, channel):
+        msg = message.replace("!play ", "")
+        song_queue.append(msg)
+        users[message.author.name].history.insert(0, msg)
+        msg_send = '"' + message + '" has been added to the song queue'
+        await client.send_message(channel, msg_send)
 
     async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
         album = album.strip()
         artist = artist.strip()
         album_info = spotify_object.get_album(album, artist)
-        song_queue[message] =  album_info
+        for song in album_info:
+            song_queue.append(song)
         msg = '"' + message + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -65,16 +67,16 @@ class Event_Message:
         playlist = playlist.strip()
         username = username.strip()
         playlist_info = spotify_object.get_playlist(playlist, username)
-        song_queue[playlist] = playlist_info
+        for song in playlist_info:
+            song_queue.append(song)
         msg = '"' + playlist + '" has been added to the song queue'
-        print(song_queue)
         await client.send_message(channel, msg)
 
     async def message_queue(self, client, message):
         index = 1
         msg = 'The current song queue is:'
-        for key in song_queue:
-            msg += '\n ' + str(index) + '. ' + key
+        for song in song_queue:
+            msg += '\n ' + str(index) + '. ' + song
             index += 1
 
         await client.send_message(message.channel, msg)
@@ -82,7 +84,9 @@ class Event_Message:
     async def message_history(self, client, message):
         msg = 'Here are the last 10 songs requested by '
         username = ''
-        if message.content[9:] == 'me':
+        if message.content.strip().lower() == '!history':
+            username = message.author.name
+        elif message.content[9:] == 'me':
             username = message.author.name
         else:
             for key in users:
@@ -104,17 +108,17 @@ class Event_Message:
 
         await client.send_message(message.channel, msg)
 
-    async def join(self, client, message):
-        channel = client.get_channel('501955815222149154')
-        vc = await client.join_voice_channel(channel)
-
-    async def play_song(self, client, query):
+    async def _join(self, client):
         if not client.is_voice_connected(client.get_server('501955815222149150')):
             channel = client.get_channel('501955815222149154')
-            vc = await client.join_voice_channel(channel)
+            voice_client = await client.join_voice_channel(channel)
+        return voice_client
+
+    async def play_song(self, client, query):
+        voice_client = self._join(client)
         url = search_yt(query)
-        vc = client.voice_client_in(client.get_server('501955815222149150'))
-        player = await vc.create_ytdl_player(url)
+        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
+        player = await voice_client.create_ytdl_player(url)
         player.start()
 
 '''
