@@ -28,6 +28,9 @@ class Event_Message:
                 await self.message_play_playlist(client, msg, channel)
             else:
                 await self.message_play_song(client, msg)
+        
+            song_queue.append(msg)
+            users[message.author.name].history.insert(0, msg)
 
 
         if message.content.startswith('!queue'):
@@ -110,7 +113,6 @@ class Event_Message:
 
     async def message_play_song(self, client, query):
         voice_client = await self._join(client)
-        song_queue.append(query)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
