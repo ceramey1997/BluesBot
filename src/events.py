@@ -11,7 +11,7 @@ firstFlag = False
 player = None
 
 class Event_Message:
-    async def message_recieved(self, client, message):
+    async def message_recieved(self, client, message, stopper):
         if message.author.name not in users:
             userIn = user.User(message.author)
             users[message.author.name] = userIn
@@ -22,15 +22,15 @@ class Event_Message:
         if message.content.startswith('!play'):
             channel = message.channel
             if message.content.startswith('!play album'):
-                await self.message_play_album(client, message, channel)
+                await self.message_play_album(client, message, channel, stopper)
             elif message.content.startswith('!play playlist'):
-                await self.message_play_playlist(client, message, channel)
+                await self.message_play_playlist(client, message, channel, stopper)
             else:
                 msg = message.content.replace('!play ', '')
                 song_queue.append(msg)
                 if len(song_queue) == 1:
                     users[message.author.name].history.insert(0, msg)
-                    await self.message_play_song(client, message.content)
+                    await self.message_play_song(client, message.content, stopper)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -43,14 +43,14 @@ class Event_Message:
         if message.content.startswith('!help'):
             await self.help(client, message)
 
-        if message.content.startswith('skip'):
-            await self.message_pause()
+        if message.content.startswith('!skip'):
+            await self.message_pause(stopper)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await self.create_embed(client, message, None, msg)
 
-    async def message_play_album(self, client, message, channel):
+    async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
         album, artist = msg.split(",")
         album = album.strip()
@@ -80,11 +80,11 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
 
         await self.change_status(client, msg)
 
-    async def message_play_playlist(self, client, message, channel):
+    async def message_play_playlist(self, client, message, channel, stopper):
         msg = message.content.replace('!play playlist ', '')
         playlist, username = msg.split(',')
         playlist = playlist.strip()
@@ -114,7 +114,7 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
 
     async def message_queue(self, client, message):
         index = 1
@@ -160,7 +160,7 @@ class Event_Message:
         voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         return voice_client
 
-    async def message_play_song(self, client, query):
+    async def message_play_song(self, client, query, stopper):
         global firstFlag
         global player
         voice_client = await self._join(client)
@@ -168,10 +168,16 @@ class Event_Message:
         player = await voice_client.create_ytdl_player(url)
         player.start()
         await self.change_status(client, query)
-        await asyncio.sleep(int(player.duration))
+        for i in range(int(player.duration)):
+            await asyncio.sleep(1)
+            if stopper.get_flag():
+                player.stop()
+                stopper.set_flag(False)
+                break
+        #await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
         else:
             firstFlag = False
 
@@ -183,12 +189,9 @@ class Event_Message:
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
-    async def message_pause(self):
+    async def message_pause(self, stopper):
         global player
-        player.stop()
-
-
-
+        stopper.set_flag(True)
 '''
 class Event_Ready:
     # on_ready features here
