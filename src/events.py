@@ -27,7 +27,7 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.message_play_song(client, message)
+                await self.play_song(client, msg)
 
 
         if message.content.startswith('!queue'):
@@ -112,12 +112,12 @@ class Event_Message:
         if not client.is_voice_connected(client.get_server('501955815222149150')):
             channel = client.get_channel('501955815222149154')
             voice_client = await client.join_voice_channel(channel)
+        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         return voice_client
 
-    async def message_play_song(self, client, query):
-        voice_client = self._join(client)
+    async def play_song(self, client, query):
+        voice_client = await self._join(client)
         url = search_yt(query)
-        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         player = await voice_client.create_ytdl_player(url)
         player.start()
 
