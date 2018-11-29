@@ -7,6 +7,7 @@ from spotify_plugin import bot_plugin
 users = {}
 song_queue = []
 spotify_object = bot_plugin()
+firstFlag = False
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -52,6 +53,14 @@ class Event_Message:
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+<<<<<<< HEAD
+=======
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
+>>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
         msg = '"' + album + ", " + artist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -64,6 +73,14 @@ class Event_Message:
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+<<<<<<< HEAD
+=======
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
+>>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
         msg = '"' + playlist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -91,7 +108,6 @@ class Event_Message:
         if username == '':
             await client.send_message(message.channel, 'That user does not exist')
             return
-
         msg +=  username
         index = 0
         history = users[username].history
@@ -100,7 +116,6 @@ class Event_Message:
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-
         await client.send_message(message.channel, msg)
 
     async def _join(self, client):
@@ -111,6 +126,10 @@ class Event_Message:
         return voice_client
 
     async def message_play_song(self, client, query):
+<<<<<<< HEAD
+=======
+        global firstFlag
+>>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
         song = query.content.replace('!play ', '')
         voice_client = await self._join(client)
         url = search_yt(song)
@@ -122,7 +141,12 @@ class Event_Message:
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
+            await self.change_status(game=discord.Ge)
+        else:
+            firstFlag = False
 
+    async def change_status(self, client, song_name):
+        await client.change_presence(game=discord.Game(name=song_name))
 '''
 class Event_Ready:
     # on_ready features here
