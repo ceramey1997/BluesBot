@@ -7,6 +7,7 @@ from spotify_plugin import bot_plugin
 users = {}
 song_queue = []
 spotify_object = bot_plugin()
+firstFlag = False
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -56,6 +57,11 @@ class Event_Message:
         album_info = spotify_object.get_album(album, artist)
         for song in album_info:
             song_queue.append(song)
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
         msg = '"' + message + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -66,6 +72,11 @@ class Event_Message:
         playlist_info = spotify_object.get_playlist(playlist, username)
         for song in playlist_info:
             song_queue.append(song)
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
         msg = '"' + playlist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -113,6 +124,7 @@ class Event_Message:
         return voice_client
 
     async def message_play_song(self, client, query):
+        global firstFlag
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
@@ -121,6 +133,8 @@ class Event_Message:
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
+        else:
+            firstFlag = False
 
 '''
 class Event_Ready:
