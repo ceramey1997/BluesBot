@@ -27,8 +27,10 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.message_play_song(client, msg)
-        
+                song_queue.append(msg)
+                if len(song_queue) == 1:
+                    await self.message_play_song(client, msg)
+
             users[message.author.name].history.insert(0, msg)
 
 
@@ -113,9 +115,12 @@ class Event_Message:
     async def message_play_song(self, client, query):
         voice_client = await self._join(client)
         url = search_yt(query)
-        song_queue.append(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
+        await asyncio.sleep(int(player.duration))
+        song_queue.pop(0)
+        if len(song_queue) > 0:
+            await self.message_play_song(client, song_queue[0])
 
 '''
 class Event_Ready:
