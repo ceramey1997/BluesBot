@@ -4,6 +4,7 @@ import src.bluesbot
 import json
 import logging
 from src import bluesbot
+from src import stop_sign
 
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
@@ -22,8 +23,9 @@ f.close()
 
 TOKEN = creds['DISCORD_TOKEN']
 
+stopper = stop_sign.Stop_Sign(False)
 client = discord.Client()
-bot = bluesbot.BluesBot()
+bot = bluesbot.BluesBot(stopper)
 #TODO: Figure out how to get the server without causing an infinite loop
 
 @client.event
@@ -35,4 +37,3 @@ async def on_ready():
     await bot.on_ready_start(client)
 
 client.run(TOKEN)
-
