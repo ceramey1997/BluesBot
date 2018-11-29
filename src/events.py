@@ -7,6 +7,7 @@ from spotify_plugin import bot_plugin
 users = {}
 song_queue = []
 spotify_object = bot_plugin()
+firstFlag = False
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -19,20 +20,14 @@ class Event_Message:
 
         if message.content.startswith('!play'):
             channel = message.channel
-            msg = message.content.replace('!play ', '')
-            if msg.startswith('album'):
-                msg = msg.replace('album ', '')
-                await self.message_play_album(client, msg, channel)
-            elif msg.startswith('playlist'):
-                msg = msg.replace('playlist ', '')
-                await self.message_play_playlist(client, msg, channel)
+            if message.content.startswith('!play album'):
+                await self.message_play_album(client, message, channel)
+            elif message.content.startswith('!play playlist'):
+                await self.message_play_playlist(client, message, channel)
             else:
                 song_queue.append(msg)
                 if len(song_queue) == 1:
                     await self.message_play_song(client, msg)
-
-            users[message.author.name].history.insert(0, msg)
-
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -50,22 +45,36 @@ class Event_Message:
         await client.send_message(message.channel, msg)
 
     async def message_play_album(self, client, message, channel):
-        album, artist = message.split(",")
+        msg = message.content.replace('!play album ', '')
+        album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
         album_info = spotify_object.get_album(album, artist)
         for song in album_info:
             song_queue.append(song)
-        msg = '"' + message + '" has been added to the song queue'
+            users[message.author.name].history.insert(0, song)
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
+        msg = '"' + album + ", " + artist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
     async def message_play_playlist(self, client, message, channel):
-        playlist, username = message.split(',')
+        msg = message.content.replace('!play playlist ', '')
+        playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
         playlist_info = spotify_object.get_playlist(playlist, username)
         for song in playlist_info:
             song_queue.append(song)
+            users[message.author.name].history.insert(0, song)
+            if len(song_queue) == 1:
+                global firstFlag
+                firstFlag = True
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0])
         msg = '"' + playlist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -111,8 +120,12 @@ class Event_Message:
         return voice_client
 
     async def message_play_song(self, client, query):
+        global firstFlag
+        song = query.content.replace('!play ', '')
         voice_client = await self._join(client)
-        url = search_yt(query)
+        url = search_yt(song)
+        song_queue.append(song)
+        users[query.author.name].history.insert(0, song)
         player = await voice_client.create_ytdl_player(url)
         player.start()
         await asyncio.sleep(int(player.duration))
@@ -120,6 +133,8 @@ class Event_Message:
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
             await self.change_status(game=discord.Ge)
+        else:
+            firstFlag = False
 
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
