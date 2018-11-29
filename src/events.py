@@ -11,7 +11,7 @@ firstFlag = False
 player = None
 
 class Event_Message:
-    async def message_recieved(self, client, message):
+    async def message_recieved(self, client, message, stopper):
         if message.author.name not in users:
             userIn = user.User(message.author)
             users[message.author.name] = userIn
@@ -30,7 +30,7 @@ class Event_Message:
                 song_queue.append(msg)
                 if len(song_queue) == 1:
                     users[message.author.name].history.insert(0, msg)
-                    await self.message_play_song(client, message.content)
+                    await self.message_play_song(client, message.content, stopper)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -43,8 +43,8 @@ class Event_Message:
         if message.content.startswith('!help'):
             await self.help(client, message)
 
-        if message.content.startswith('skip'):
-            await self.message_pause()
+        if message.content.startswith('!skip'):
+            await self.message_pause(stopper)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -125,17 +125,23 @@ class Event_Message:
         voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         return voice_client
 
-    async def message_play_song(self, client, query):
+    async def message_play_song(self, client, query, stopper):
         global firstFlag
         global player
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
-        await asyncio.sleep(int(player.duration))
+        for i in range(int(player.duration)):
+            await asyncio.sleep(1)
+            if stopper.get_flag():
+                player.stop()
+                stopper.set_flag(False)
+                break
+        #await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
             await self.change_status(query)
         else:
             firstFlag = False
@@ -143,11 +149,9 @@ class Event_Message:
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
 
-    async def message_pause(self):
+    async def message_pause(self, stopper):
         global player
-        player.stop()
-
-
+        stopper.set_flag(True)
 
 '''
 class Event_Ready:
