@@ -24,9 +24,9 @@ class Event_Message:
             elif message.content.startswith('!play playlist'):
                 await self.message_play_playlist(client, message, channel)
             else:
-                await self.message_play_song(client, message)
-        
-
+                song_queue.append(msg)
+                if len(song_queue) == 1:
+                    await self.message_play_song(client, msg)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -118,6 +118,10 @@ class Event_Message:
         users[query.author.name].history.insert(0, song)
         player = await voice_client.create_ytdl_player(url)
         player.start()
+        await asyncio.sleep(int(player.duration))
+        song_queue.pop(0)
+        if len(song_queue) > 0:
+            await self.message_play_song(client, song_queue[0])
 
 '''
 class Event_Ready:
