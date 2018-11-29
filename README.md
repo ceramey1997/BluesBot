@@ -1,12 +1,12 @@
-This is our README \n\n
+This is our README <br><br>
 
-Things to do \n
--Get bot to leave if queue is empty \n
--have bot say goodbye \n
--fix global variable issue\n
--Update readme\n
--non hardcoded voice channel\n
--restart feature\n
--general cleanup + commenting\n
--implement spotify commands on bot side\n
--HAVE FUN\n
+Things to do <br>
+-Get bot to leave if queue is empty <br>
+-have bot say goodbye <br>
+-fix global variable issue<br>
+-Update readme<br>
+-non hardcoded voice channel<br>
+-restart feature<br>
+-general cleanup + commenting<br>
+-implement spotify commands on bot side<br>
+-HAVE FUN<br>
