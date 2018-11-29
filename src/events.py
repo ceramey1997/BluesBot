@@ -46,6 +46,9 @@ class Event_Message:
         if message.content.startswith('!skip'):
             await self.message_pause(stopper)
 
+        if message.content.startswith('!repeat'):
+            await self.message_repeat(client, message)
+
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await self.create_embed(client, message, None, msg)
@@ -118,8 +121,9 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
+        mention = message.author.mention
 
-        title = 'The current song queue is:'
+        title = mention + ' The current song queue is:'
         msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
@@ -128,24 +132,24 @@ class Event_Message:
         await self.create_embed(client, message, title, msg)
 
     async def message_history(self, client, message):
+
+        user = None
         title = 'Here are the last 10 songs requested by '
-        username = ''
+
         if message.content.strip().lower() == '!history':
-            username = message.author.name
-        elif message.content[9:] == 'me':
-            username = message.author.name
+            user = message.author
         else:
             for key in users:
-                if message.content[9:] == key:
-                    username = message.content[9:]
+                if message.content[9:] == users[key].mention: #TODO: This doesn't work :(
+                    user = users[key]
 
-        if username == '':
-            await self.create_embed(client, message, title='That user does not exist')
+        if user is None:
+            await client.send_message(message.channel, 'That user does not exist')
             return
-        title +=  username
-        index = 0
-        history = users[username].history
+        title +=  user.mention     
+        history = users[user.name].history
         msg = ''
+        index = 0
         while index < 10:
             if index >= len(history):
                 break
@@ -184,6 +188,12 @@ class Event_Message:
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
 
+    async def message_repeat(self, client, message):
+        current_song = song_queue[0]
+        song_queue.insert(1, current_song)
+        msg = message.author.mention + ' ' + current_song + ' will be repeated'
+        await client.send_message(message.channel, msg)
+
     async def create_embed(self, client, message, title=None, description=None):
         em = discord.Embed(title=title, description=description, colour=0xDEADBF)
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
@@ -192,6 +202,7 @@ class Event_Message:
     async def message_pause(self, stopper):
         global player
         stopper.set_flag(True)
+
 '''
 class Event_Ready:
     # on_ready features here
