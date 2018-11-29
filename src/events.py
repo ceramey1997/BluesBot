@@ -2,7 +2,7 @@ import discord
 from  src.users import user
 from src.search_engine import search_yt
 import asyncio
-from spotify_plugin import bot_plugin
+from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 
 users = {}
 song_queue = []
@@ -48,53 +48,87 @@ class Event_Message:
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, None, msg)
 
     async def message_play_album(self, client, message, channel):
         msg = message.content.replace('!play album ', '')
         album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
-        album_info = spotify_object.get_album(album, artist)
+        description = ''
+        try:
+            album_info = spotify_object.get_album_tracks(album, artist)
+        except SpotifyError as e:
+            if isinstance(e, AlbumError):
+                msg = 'Invalid album name'
+            elif isinstance(e, ArtistError):
+                msg = 'Invalid artist name'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+            description += "\n" + song
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
+
+        title = "Songs Added To Queue:\n\tAlbum: " + album + "\n\tArtist: " + artist
+        await self.create_embed(client, message, title, description)
+
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
-        msg = '"' + album + ", " + artist + '" has been added to the song queue'
-        await client.send_message(channel, msg)
+
+        await self.change_status(client, msg)
 
     async def message_play_playlist(self, client, message, channel):
         msg = message.content.replace('!play playlist ', '')
         playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
-        playlist_info = spotify_object.get_playlist(playlist, username)
+        description = ''
+        try:
+            playlist_info = spotify_object.get_playlist_tracks(playlist, username)
+        except SpotifyError as e:
+            if isinstance(e, PlaylistError):
+                msg = 'Invalid playlist name'
+            elif isinstance(e, UserError):
+                msg = 'Invalid username'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+            description += '\n' + song
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
+
+        title = "Songs Added To Queue From:\n\t" + playlist
+        await self.create_embed(client, message, title, description)
+
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
-        msg = '"' + playlist + '" has been added to the song queue'
-        await client.send_message(channel, msg)
 
     async def message_queue(self, client, message):
         index = 1
-        msg = 'The current song queue is:'
+
+        title = 'The current song queue is:'
+        msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
             index += 1
 
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, title, msg)
 
     async def message_history(self, client, message):
-        msg = 'Here are the last 10 songs requested by '
+        title = 'Here are the last 10 songs requested by '
         username = ''
         if message.content.strip().lower() == '!history':
             username = message.author.name
@@ -106,17 +140,18 @@ class Event_Message:
                     username = message.content[9:]
 
         if username == '':
-            await client.send_message(message.channel, 'That user does not exist')
+            await self.create_embed(client, message, title='That user does not exist')
             return
-        msg +=  username
+        title +=  username
         index = 0
         history = users[username].history
+        msg = ''
         while index < 10:
             if index >= len(history):
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, title, msg)
 
     async def _join(self, client):
         if not client.is_voice_connected(client.get_server('501955815222149150')):
@@ -132,6 +167,7 @@ class Event_Message:
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
+        await self.change_status(query)
         for i in range(int(player.duration)):
             await asyncio.sleep(1)
             if stopper.get_flag():
@@ -142,17 +178,20 @@ class Event_Message:
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper)
-            await self.change_status(query)
         else:
             firstFlag = False
 
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
 
-    async def message_pause(self, stopper):
+    async def create_embed(self, client, message, title=None, description=None):
+        em = discord.Embed(title=title, description=description, colour=0xDEADBF)
+        em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
+        await client.send_message(message.channel, embed=em)
+
+    async def message_pause(self):
         global player
         stopper.set_flag(True)
-
 '''
 class Event_Ready:
     # on_ready features here
