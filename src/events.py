@@ -27,7 +27,11 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
+<<<<<<< HEAD
                 await self.play_song(client, message)
+=======
+                await self.message_play(client, msg, channel)
+>>>>>>> fix variable misname
 
 
         if message.content.startswith('!queue'):
