@@ -45,7 +45,7 @@ class Event_Message:
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
+        await client.say(message.channel, msg)
 
     async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
@@ -55,6 +55,7 @@ class Event_Message:
         for song in album_info:
             song_queue.append(song)
         msg = '"' + message + '" has been added to the song queue'
+        await self.change_status(client, song)
         await client.send_message(channel, msg)
 
     async def message_play_playlist(self, client, message, channel):
@@ -91,7 +92,6 @@ class Event_Message:
         if username == '':
             await client.send_message(message.channel, 'That user does not exist')
             return
-
         msg +=  username
         index = 0
         history = users[username].history
@@ -100,7 +100,6 @@ class Event_Message:
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-
         await client.send_message(message.channel, msg)
 
     async def _join(self, client):
@@ -117,6 +116,8 @@ class Event_Message:
         player = await voice_client.create_ytdl_player(url)
         player.start()
 
+    async def change_status(self, client, song_name):
+        await client.change_presence(game=discord.Game(name=song_name))
 '''
 class Event_Ready:
     # on_ready features here
