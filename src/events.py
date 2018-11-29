@@ -121,9 +121,7 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
-        mention = message.author.mention
-
-        title = mention + ' The current song queue is:'
+        title = 'The current song queue is:'
         msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
@@ -133,21 +131,21 @@ class Event_Message:
 
     async def message_history(self, client, message):
 
-        user = None
+        username = ''
         title = 'Here are the last 10 songs requested by '
 
         if message.content.strip().lower() == '!history':
-            user = message.author
+            username = message.author.name
         else:
             for key in users:
-                if message.content[9:] == users[key].mention: #TODO: This doesn't work :(
-                    user = users[key]
+                if message.content[9:] == key:
+                    username = key
 
-        if user is None:
+        if username is '':
             await client.send_message(message.channel, 'That user does not exist')
             return
-        title +=  user.mention     
-        history = users[user.name].history
+        title +=  username     
+        history = users[username].history
         msg = ''
         index = 0
         while index < 10:
