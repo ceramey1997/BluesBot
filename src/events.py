@@ -2,6 +2,7 @@ import discord
 from  src.users import user
 from src.search_engine import search_yt
 import asyncio
+import logging
 from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 
 users = {}
@@ -11,6 +12,7 @@ firstFlag = False
 player = None
 
 class Event_Message:
+    log = logging.getLogger()
     async def message_recieved(self, client, message, stopper):
         if message.author.name not in users:
             userIn = user.User(message.author)
@@ -67,6 +69,7 @@ class Event_Message:
             elif isinstance(e, ArtistError):
                 msg = 'Invalid artist name'
             else:
+                self.log.error(str(e)
                 print(e.args)
                 return
             await client.send_message(channel, msg)
@@ -101,6 +104,7 @@ class Event_Message:
             elif isinstance(e, UserError):
                 msg = 'Invalid username'
             else:
+                self.log.error(str(e))
                 print(e.args)
                 return
             await client.send_message(channel, msg)
