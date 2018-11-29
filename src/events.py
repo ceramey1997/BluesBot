@@ -55,7 +55,7 @@ class Event_Message:
         album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
-        album_info = spotify_object.get_album(album, artist)
+        album_info = spotify_object.get_album_tracks(album, artist)
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
@@ -72,7 +72,7 @@ class Event_Message:
         playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
-        playlist_info = spotify_object.get_playlist(playlist, username)
+        playlist_info = spotify_object.get_playlist_tracks(playlist, username)
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
