@@ -146,7 +146,7 @@ class Event_Message:
         if user is None:
             await client.send_message(message.channel, 'That user does not exist')
             return
-        title +=  user.mention     
+        title +=  user.mention
         history = users[user.name].history
         msg = ''
         index = 0
@@ -170,6 +170,7 @@ class Event_Message:
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
+        player.volume = 0.1
         player.start()
         await self.change_status(client, query)
         for i in range(int(player.duration)):
