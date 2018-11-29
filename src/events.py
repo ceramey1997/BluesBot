@@ -30,7 +30,7 @@ class Event_Message:
                 song_queue.append(msg)
                 if len(song_queue) == 1:
                     users[message.author.name].history.insert(0, msg)
-                    await self.message_play_song(client, message.content, stopper)
+                    await self.message_play_song(client, msg, stopper)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -45,6 +45,10 @@ class Event_Message:
 
         if message.content.startswith('!skip'):
             await self.message_pause(stopper)
+        
+        if message.content.startswith('!remove'):
+            song = message.content.replace('!remove ', '')
+            await self.remove_song(client, message, song)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -192,6 +196,17 @@ class Event_Message:
     async def message_pause(self, stopper):
         global player
         stopper.set_flag(True)
+
+    async def remove_song(self, client, message, song_name):
+        for song in song_queue:
+            if song_name.lower() in song.lower():
+                song_queue.remove(song)
+                msg = song + " has been removed from the queue"
+                await self.create_embed(client, message, title=msg)
+                return
+        msg = song + " is not found in the queue"
+        await self.create_embed(client, message, title=msg)
+
 '''
 class Event_Ready:
     # on_ready features here
