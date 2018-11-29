@@ -2,6 +2,7 @@
 import discord
 import src.bluesbot
 import json
+from src import bluesbot
 
 f = open('creds.json', 'r')
 creds = json.loads(f.read())
@@ -10,7 +11,7 @@ f.close()
 TOKEN = creds['DISCORD_TOKEN']
 
 client = discord.Client()
-bot = src.bluesbot.BluesBot()
+bot = bluesbot.BluesBot()
 #TODO: Figure out how to get the server without causing an infinite loop
 
 @client.event
