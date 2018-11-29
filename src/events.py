@@ -48,13 +48,14 @@ class Event_Message:
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, None, msg)
 
     async def message_play_album(self, client, message, channel):
         msg = message.content.replace('!play album ', '')
         album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
+        description = ''
         try:
             album_info = spotify_object.get_album_tracks(album, artist)
         except SpotifyError as e:
@@ -70,19 +71,25 @@ class Event_Message:
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+            description += "\n" + song
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
+
+        title = "Songs Added To Queue:\n\tAlbum: " + album + "\n\tArtist: " + artist
+        await self.create_embed(client, message, title, description)
+
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
-        msg = '"' + album + ", " + artist + '" has been added to the song queue'
-        await client.send_message(channel, msg)
+
+        await self.change_status(client, msg)
 
     async def message_play_playlist(self, client, message, channel):
         msg = message.content.replace('!play playlist ', '')
         playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
+        description = ''
         try:
             playlist_info = spotify_object.get_playlist_tracks(playlist, username)
         except SpotifyError as e:
@@ -98,25 +105,30 @@ class Event_Message:
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
+            description += '\n' + song
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
+
+        title = "Songs Added To Queue From:\n\t" + playlist
+        await self.create_embed(client, message, title, description)
+
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
-        msg = '"' + playlist + '" has been added to the song queue'
-        await client.send_message(channel, msg)
 
     async def message_queue(self, client, message):
         index = 1
-        msg = 'The current song queue is:'
+
+        title = 'The current song queue is:'
+        msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
             index += 1
 
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, title, msg)
 
     async def message_history(self, client, message):
-        msg = 'Here are the last 10 songs requested by '
+        title = 'Here are the last 10 songs requested by '
         username = ''
         if message.content.strip().lower() == '!history':
             username = message.author.name
@@ -128,17 +140,18 @@ class Event_Message:
                     username = message.content[9:]
 
         if username == '':
-            await client.send_message(message.channel, 'That user does not exist')
+            await self.create_embed(client, message, title='That user does not exist')
             return
-        msg +=  username
+        title +=  username
         index = 0
         history = users[username].history
+        msg = ''
         while index < 10:
             if index >= len(history):
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-        await client.send_message(message.channel, msg)
+        await self.create_embed(client, message, title, msg)
 
     async def _join(self, client):
         if not client.is_voice_connected(client.get_server('501955815222149150')):
@@ -154,16 +167,21 @@ class Event_Message:
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
+        await self.change_status(client, query)
         await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
-            await self.change_status(query)
         else:
             firstFlag = False
 
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
+
+    async def create_embed(self, client, message, title=None, description=None):
+        em = discord.Embed(title=title, description=description, colour=0xDEADBF)
+        em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
+        await client.send_message(message.channel, embed=em)
 
     async def message_pause(self):
         global player
