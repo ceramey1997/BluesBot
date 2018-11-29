@@ -122,3 +122,4 @@ creds.json
 *.swo
 
 test.py
+.idea

@@ -2,12 +2,13 @@ import discord
 from  src.users import user
 from src.search_engine import search_yt
 import asyncio
-from spotify_plugin import bot_plugin
+from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 
 users = {}
 song_queue = []
 spotify_object = bot_plugin()
 firstFlag = False
+player = None
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -42,6 +43,9 @@ class Event_Message:
         if message.content.startswith('!help'):
             await self.help(client, message)
 
+        if message.content.startswith('skip'):
+            await self.message_pause()
+
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await self.create_embed(client, message, None, msg)
@@ -51,8 +55,19 @@ class Event_Message:
         album, artist = msg.split(",")
         album = album.strip()
         artist = artist.strip()
-        album_info = spotify_object.get_album(album, artist)
         description = ''
+        try:
+            album_info = spotify_object.get_album_tracks(album, artist)
+        except SpotifyError as e:
+            if isinstance(e, AlbumError):
+                msg = 'Invalid album name'
+            elif isinstance(e, ArtistError):
+                msg = 'Invalid artist name'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
@@ -74,8 +89,19 @@ class Event_Message:
         playlist, username = msg.split(',')
         playlist = playlist.strip()
         username = username.strip()
-        playlist_info = spotify_object.get_playlist(playlist, username)
         description = ''
+        try:
+            playlist_info = spotify_object.get_playlist_tracks(playlist, username)
+        except SpotifyError as e:
+            if isinstance(e, PlaylistError):
+                msg = 'Invalid playlist name'
+            elif isinstance(e, UserError):
+                msg = 'Invalid username'
+            else:
+                print(e.args)
+                return
+            await client.send_message(channel, msg)
+            return
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
@@ -136,6 +162,7 @@ class Event_Message:
 
     async def message_play_song(self, client, query):
         global firstFlag
+        global player
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
@@ -155,6 +182,12 @@ class Event_Message:
         em = discord.Embed(title=title, description=description, colour=0xDEADBF)
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
+
+    async def message_pause(self):
+        global player
+        player.stop()
+
+
 
 '''
 class Event_Ready:
