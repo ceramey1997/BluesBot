@@ -92,7 +92,7 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
-        
+
         title = 'The current song queue is:'
         msg = ''
         for song in song_queue:
