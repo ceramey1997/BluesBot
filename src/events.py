@@ -21,13 +21,17 @@ class Event_Message:
         if message.content.startswith('!play'):
             channel = message.channel
             if message.content.startswith('!play album'):
+                # msg = message.content.replace('!play album ', '')
                 await self.message_play_album(client, message, channel)
             elif message.content.startswith('!play playlist'):
+                # msg = message.content.replace('!play playlist ', '')
                 await self.message_play_playlist(client, message, channel)
             else:
+                msg = message.content.replace('!play ', '')
                 song_queue.append(msg)
                 if len(song_queue) == 1:
-                    await self.message_play_song(client, msg)
+                    users[message.author.name].history.insert(0, msg)
+                    await self.message_play_song(client, message.content)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -53,14 +57,11 @@ class Event_Message:
         for song in album_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
-<<<<<<< HEAD
-=======
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
->>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
         msg = '"' + album + ", " + artist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -73,14 +74,11 @@ class Event_Message:
         for song in playlist_info:
             song_queue.append(song)
             users[message.author.name].history.insert(0, song)
-<<<<<<< HEAD
-=======
             if len(song_queue) == 1:
                 global firstFlag
                 firstFlag = True
         if firstFlag:
             await self.message_play_song(client, song_queue[0])
->>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
         msg = '"' + playlist + '" has been added to the song queue'
         await client.send_message(channel, msg)
 
@@ -126,22 +124,16 @@ class Event_Message:
         return voice_client
 
     async def message_play_song(self, client, query):
-<<<<<<< HEAD
-=======
         global firstFlag
->>>>>>> 933e1accc0fb7fa82076819423cef918551f415a
-        song = query.content.replace('!play ', '')
         voice_client = await self._join(client)
-        url = search_yt(song)
-        song_queue.append(song)
-        users[query.author.name].history.insert(0, song)
+        url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
         await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
-            await self.change_status(game=discord.Ge)
+            # await self.change_status(game=discord.Ge)
         else:
             firstFlag = False
 
