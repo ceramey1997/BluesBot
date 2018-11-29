@@ -121,3 +121,4 @@ creds.json
 *.swp
 *.swo
 
+test.py
