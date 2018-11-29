@@ -28,6 +28,8 @@ class UserError(SpotifyError):
     pass
 class PlaylistError(SpotifyError):
     pass
+class TrackError(SpotifyError):
+    pass
 
 
 class bot_plugin(object):
@@ -42,10 +44,28 @@ class bot_plugin(object):
 
         self.token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=self.token)
+        self.genres = self.spotify.recommendation_genre_seeds()
         
-    def get_playlist(self, playlist, username=None):
-        if username is None:
-            username = self.spotify.current_user()['id']
+    def _get_song_(self, song_name, ):
+        results = self.spotify.search(song_name, type='track')['items']
+        if len(results) == 0:
+            raise TrackError('Track not found')
+        return results[0]
+
+    def _get_artist_(self, artist_name):
+        results = self.spotify.search(artist_name, type='artist',limit=50)['items']
+        if len(results) <= 0:
+            raise TrackError('Track not found')
+        return results
+
+    def _get_track_format_(self, track):
+        track = track
+        track_temp = ''
+        for artist in track['artists']:
+            track_temp += artist['name'] + ' '
+        return track_temp + track['name']
+
+    def get_playlist_tracks(self, playlist, username='spotify'):
         playlists = self.spotify.user_playlists(username)['items']
         for p in playlists:
             if p['name'] == playlist:
@@ -53,52 +73,89 @@ class bot_plugin(object):
         else:
             raise PlaylistError
 
-        tracks_temp = self.spotify.user_playlist_tracks(username, p['id'])
+        tracks_result = self.spotify.user_playlist(username, p['id'])['tracks']
         tracks_final= []
-        for track in tracks_temp['items']:
-            track = track['track']
-            track_temp = ''
-            for artist in track['artists']:
-                track_temp += artist['name'] + ' '
-            tracks_final.append(track_temp + track['name'])
+        while tracks_result:
+            tracks_final.extend([self._get_track_format_(track) for track in tracks_result['items']])
+            tracks_result = self.spotify.next(tracks_result)
+        for track in tracks_result['tracks']:  
+            tracks_final.append(self._get_track_format_(track))
         return tracks_final
 
-    def get_album(self, album, artist):
-        artists_list = self.spotify.search(artist,type='artist')['artists']['items']
-        for art in artists_list:
-            if art['name'].lower() == artist:
-                break
-        else:
+    def get_album_tracks(self, album, artist):
+        artist_results = self.spotify.search(artist,type='artist')['artists']['items']
+        if len(artist_results) <= 0:
             raise ArtistError
-        
-        albums_list = self.spotify.artist_albums(art['id'])
-        for alb in albums_list['items']:
-            if alb['name'].lower() == album:
+        for artist_found in artist_results:
+            album_results = self.spotify.search(album, type='album')['albums']
+            while album_results:
+                for album in album_results['items']:
+                    for artist in album['artists']:
+                        if artist['id'] == artist_found['id']:
+                            break
+                    else:
+                        continue
+                    break
+                else:
+                    album_results = self.spotify.next(album_results)['albums']
+                    continue
                 break
+            else:
+                continue
+            break
         else:
             raise AlbumError
         
-        tracks_temp = self.spotify.album_tracks(alb['id'])
+        tracks_temp = self.spotify.album_tracks(album['id'])
         tracks_final= []
         for track in tracks_temp['items']:
-            track_temp = ''
-            for artist in track['artists']:
-                track_temp += artist['name'] + ' '
-            tracks_final.append(track_temp + track['name'])
+            tracks_final.append(self._get_track_format_(track))
         return tracks_final
 
     def get_song_recs(self, songs=None, artists=None, genres=None, ):
         # TODO: add get recs
-        pass
+        if len(songs) + len(artists) + len(genres) > 5:
+            raise AssertionError('Too many arguements passed in, must be 5 or less')
+
+        song_ids = []
+        for song in songs:
+            song_ids.append(self._get_song_(song))
+
+        artist_ids = []
+        for artist in artists:
+            artist_ids.append(self._get_artist_(artist))
+
+        tracks = self.spotify.recommendations(seed_artists=artist_ids, seed_genres=genres, seed_tracks=song_ids)
+        return [self._get_track_format_(track) for track in tracks]
 
     def get_genres(self):
-        return __genres__
+        return self.genres
 
-    def get_user_playlists(self, username=None):
-        if username is None:
-            username = self.spotify.current_user()['id']
-        
-        playlists = self.spotify.user_playlists(username)['items']
-        return [playlist['name'] for playlist in playlists]
+    def get_user_playlists(self, username='spotify'):
+        playlists = self.spotify.user_playlists(username, limit=50)['items']
+        playlist_list = []
+        while playlists:
+            playlist_list.extend([playlist['name'] for playlist in playlists['items']])
+            playlists = self.spotify.next(playlists)
+        return playlist_list
+
+    def get_categories(self):
+        category_list = []
+        categories = self.spotify.categories(limit=50)
+        while categories:
+            category_list.extend([{cat['id']: cat['name']} for cat in categories['categories']['items']])
+            categories = self.spotify.next(categories['categories'])
+        return category_list
+
+    def get_category_playlists(self, category_id):
+        return [track['name'] for track in self.spotify.category_playlists(category_id=category_id,limit=100)]
+
+    def get_featured_playlists(self):
+        playlist_results = self.spotify.featured_playlists()['playlists']
+        playlist_list = []
+        while playlist_results:
+            playlist_list.extend([playlist['name'] for playlist in playlist_results['items']])
+            playlist_results = self.spotify.next(playlist_results)
+        return playlist_list
 
     
