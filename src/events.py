@@ -102,7 +102,6 @@ class Event_Message:
         if username == '':
             await client.send_message(message.channel, 'That user does not exist')
             return
-
         msg +=  username
         index = 0
         history = users[username].history
@@ -111,7 +110,6 @@ class Event_Message:
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-
         await client.send_message(message.channel, msg)
 
     async def _join(self, client):
@@ -134,9 +132,12 @@ class Event_Message:
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
+            await self.change_status(game=discord.Ge)
         else:
             firstFlag = False
 
+    async def change_status(self, client, song_name):
+        await client.change_presence(game=discord.Game(name=song_name))
 '''
 class Event_Ready:
     # on_ready features here
