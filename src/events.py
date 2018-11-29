@@ -125,14 +125,13 @@ class Event_Message:
         voice_client = await self._join(client)
         url = search_yt(song)
         song_queue.append(song)
-        users[query.author.name].history.insert(0, song)
         player = await voice_client.create_ytdl_player(url)
         player.start()
         await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
-            await self.change_status(game=discord.Ge)
+            await self.change_status(query)
         else:
             firstFlag = False
 
