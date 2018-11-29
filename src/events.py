@@ -8,7 +8,6 @@ users = {}
 song_queue = []
 spotify_object = bot_plugin()
 firstFlag = False
-player = None
 
 class Event_Message:
     async def message_recieved(self, client, message):
@@ -43,8 +42,11 @@ class Event_Message:
         if message.content.startswith('!help'):
             await self.help(client, message)
 
-        if message.content.startswith('skip'):
-            await self.message_pause()
+        if message.content.startswith('!skip'):
+            await self.message_skip()
+
+        if message.content.startswith('!repeat'):
+            await self.message_repeat(client, message)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -86,7 +88,8 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
-        msg = 'The current song queue is:'
+        mention = message.author.mention
+        msg = mention + 'The current song queue is:'
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
             index += 1
@@ -95,22 +98,20 @@ class Event_Message:
 
     async def message_history(self, client, message):
         msg = 'Here are the last 10 songs requested by '
-        username = ''
+        user = None
         if message.content.strip().lower() == '!history':
-            username = message.author.name
-        elif message.content[9:] == 'me':
-            username = message.author.name
+            user = message.author
         else:
             for key in users:
-                if message.content[9:] == key:
-                    username = message.content[9:]
+                if message.content[9:] == users[key].mention: #TODO: This doesn't work :(
+                    user = users[key]
 
-        if username == '':
+        if user is None:
             await client.send_message(message.channel, 'That user does not exist')
             return
-        msg +=  username
+        msg +=  user.mention
         index = 0
-        history = users[username].history
+        history = users[user.name].history
         while index < 10:
             if index >= len(history):
                 break
@@ -143,11 +144,15 @@ class Event_Message:
     async def change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
 
-    async def message_pause(self):
+    async def message_skip(self):
         global player
         player.stop()
 
-
+    async def message_repeat(self, client, message):
+        current_song = song_queue[0]
+        song_queue.insert(1, current_song)
+        msg = message.author.mention + ' ' + current_song + ' will be repeated'
+        await client.send_message(message.channel, msg)
 
 '''
 class Event_Ready:
