@@ -136,7 +136,7 @@ class Event_Message:
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0])
-            # await self.change_status(game=discord.Ge)
+            await self.change_status(query)
         else:
             firstFlag = False
 
