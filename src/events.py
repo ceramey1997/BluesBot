@@ -22,9 +22,9 @@ class Event_Message:
         if message.content.startswith('!play'):
             channel = message.channel
             if message.content.startswith('!play album'):
-                await self.message_play_album(client, message, channel)
+                await self.message_play_album(client, message, channel, stopper)
             elif message.content.startswith('!play playlist'):
-                await self.message_play_playlist(client, message, channel)
+                await self.message_play_playlist(client, message, channel, stopper)
             else:
                 msg = message.content.replace('!play ', '')
                 song_queue.append(msg)
@@ -50,7 +50,7 @@ class Event_Message:
         msg = 'Hello {0.author.mention}'.format(message)
         await self.create_embed(client, message, None, msg)
 
-    async def message_play_album(self, client, message, channel):
+    async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
         album, artist = msg.split(",")
         album = album.strip()
@@ -80,11 +80,11 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
 
         await self.change_status(client, msg)
 
-    async def message_play_playlist(self, client, message, channel):
+    async def message_play_playlist(self, client, message, channel, stopper):
         msg = message.content.replace('!play playlist ', '')
         playlist, username = msg.split(',')
         playlist = playlist.strip()
@@ -114,7 +114,7 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0])
+            await self.message_play_song(client, song_queue[0], stopper)
 
     async def message_queue(self, client, message):
         index = 1
@@ -167,7 +167,7 @@ class Event_Message:
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.start()
-        await self.change_status(query)
+        await self.change_status(client, query)
         for i in range(int(player.duration)):
             await asyncio.sleep(1)
             if stopper.get_flag():
@@ -189,7 +189,7 @@ class Event_Message:
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
-    async def message_pause(self):
+    async def message_pause(self, stopper):
         global player
         stopper.set_flag(True)
 '''
