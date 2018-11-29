@@ -27,7 +27,7 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.play_song(client, message)
+                await self.message_play_song(client, msg)
 
 
         if message.content.startswith('!queue'):
@@ -44,13 +44,6 @@ class Event_Message:
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await client.send_message(message.channel, msg)
-
-    async def message_play(self, client, message, channel):
-        msg = message.replace("!play ", "")
-        song_queue.append(msg)
-        users[message.author.name].history.insert(0, msg)
-        msg_send = '"' + message + '" has been added to the song queue'
-        await client.send_message(channel, msg_send)
 
     async def message_play_album(self, client, message, channel):
         album, artist = message.split(",")
@@ -112,12 +105,13 @@ class Event_Message:
         if not client.is_voice_connected(client.get_server('501955815222149150')):
             channel = client.get_channel('501955815222149154')
             voice_client = await client.join_voice_channel(channel)
+        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         return voice_client
 
-    async def play_song(self, client, query):
-        voice_client = self._join(client)
+    async def message_play_song(self, client, query):
+        voice_client = await self._join(client)
+        song_queue.append(query)
         url = search_yt(query)
-        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         player = await voice_client.create_ytdl_player(url)
         player.start()
 
