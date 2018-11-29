@@ -27,7 +27,7 @@ class Event_Message:
                 msg = msg.replace('playlist ', '')
                 await self.message_play_playlist(client, msg, channel)
             else:
-                await self.play_song(client, msg)
+                await self.message_play(client, msg, channel)
 
 
         if message.content.startswith('!queue'):
@@ -111,7 +111,7 @@ class Event_Message:
         if not client.is_voice_connected(client.get_server('501955815222149150')):
             channel = client.get_channel('501955815222149154')
             voice_client = await client.join_voice_channel(channel)
-        return voice_channel
+        return voice_client
 
     async def play_song(self, client, query):
         voice_client = self._join(client)
