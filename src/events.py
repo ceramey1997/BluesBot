@@ -29,6 +29,7 @@ class Event_Message:
             else:
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                 await self.play_song(client, message)
 =======
                 await self.message_play(client, msg, channel)
@@ -36,6 +37,9 @@ class Event_Message:
 =======
                 await self.play_song(client, message)
 >>>>>>> changed variables
+=======
+                await self.play_song(client, message)
+>>>>>>> 776a9a3c6dd3baa8eb35ca6ed984729e4018482c
 
 
         if message.content.startswith('!queue'):
