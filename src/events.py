@@ -45,7 +45,7 @@ class Event_Message:
             await self.help(client, message)
 
         if message.content.startswith('!skip'):
-            await self.message_pause(stopper)
+            await self.message_skip(stopper, client)
         
         if message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
@@ -185,7 +185,7 @@ class Event_Message:
             return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.1
+        player.volume = 0.25
         player.start()
         await self.change_status(client, query)
         for i in range(int(player.duration)):
@@ -216,8 +216,9 @@ class Event_Message:
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
-    async def message_pause(self, stopper):
+    async def message_skip(self, stopper, client):
         global player
+        await self.change_status(client, None)
         stopper.set_flag(True)
 
     async def remove_song(self, client, message, song_name):
