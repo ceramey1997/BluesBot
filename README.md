@@ -1,9 +1,9 @@
 This is our README <br><br>
 
 Things to do <br>
+-add to help command <br>
 -fix global variable issue<br>
 -Update readme<br>
--restart feature<br>
 -general cleanup + commenting<br>
 -implement spotify commands on bot side<br>
 -HAVE FUN<br>
