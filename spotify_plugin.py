@@ -104,7 +104,7 @@ class bot_plugin(object):
             tracks_final.append(self._get_track_format_(track))
         return tracks_final
 
-    def get_song_recs(self, songs=[], artists=[], genres=[], ):
+    def get_song_recommendations(self, songs=[], artists=[], genres=[], ):
         if len(songs) + len(artists) + len(genres) > 5:
             raise AssertionError('Too many arguements passed in, must be 5 or less')
 
