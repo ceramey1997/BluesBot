@@ -1,6 +1,6 @@
+# third-party
 import json
 import os
-
 import spotipy
 import spotipy.util as Util
 
@@ -19,21 +19,37 @@ __genres__ = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient', 'ani
     'tango', 'techno', 'trance', 'trip-hop', 'turkish', 'work-out', 'world-music']
 
 class SpotifyError(Exception):
+    """General Spotify Error"""
     pass
+
+
 class ArtistError(SpotifyError):
+    """Spotify Artist Error"""
     pass
+
+
 class AlbumError(SpotifyError):
+    """Spotify Album Error"""
     pass
+
+
 class UserError(SpotifyError):
+    """Spotify User Error"""
     pass
+
+
 class PlaylistError(SpotifyError):
+    """Spotify Playlist Error"""
     pass
+
+
 class TrackError(SpotifyError):
+    """Spotify Track Error"""
     pass
 
 
 class bot_plugin(object):
-
+    """Spotify Object; handles all Spotify interactionqs"""
     def __init__(self):
         f = open('creds.json', 'r')
         creds = json.loads(f.read())
@@ -46,25 +62,67 @@ class bot_plugin(object):
         self.spotify = spotipy.Spotify(auth=token)
         self.genres = self.spotify.recommendation_genre_seeds()['genres']
         
-    def _get_song_(self, song_name, ):
+    def _get_song_(self, song_name):
+        """Gets the song from spotify
+
+        Args:
+            song_name (Str): song to fine
+
+        Raises:
+            TrackError: if cannot find song you are looking for
+
+        Returns:
+            Str: song name you were searching for
+        """
         results = self.spotify.search(song_name, type='track')['tracks']['items']
         if len(results) <= 0:
             raise TrackError('Track not found')
         return results[0]['id']
 
     def _get_artist_(self, artist_name):
+        """Gets an artist from Spotify
+
+        Args:
+            artist_name (Str): artist to find
+
+        Raises:
+            TrackError: if cannot find artist you are looking for
+
+        Returns:
+            Str: artist name you were searching for
+        """
         results = self.spotify.search(artist_name, type='artist')['artists']['items']
         if len(results) <= 0:
             raise TrackError('Track not found')
         return results[0]['id']
 
     def _get_track_format_(self, track):
+        """Get the track format
+
+        Args:
+            track (Str): track to get format
+        
+        Returns:
+            Str: track with correct formatting
+        """
         track_temp = ''
         for artist in track['artists']:
             track_temp += artist['name'] + ' '
         return track_temp + track['name']
 
     def get_playlist_tracks(self, playlist, username='spotify'):
+        """Get all playlist track from a given playlist
+
+        Args:
+            playlist (Str): name of playlist
+            username (Str): defaults to spotify, otherwise passed in username of Spotify account
+        
+        Raises:
+            PlaylistError: if cannot find the given playlist
+        
+        Returns:
+            list: tracks from a playlist
+        """
         playlists = self.spotify.user_playlists(username)['items']
         for p in playlists:
             if p['name'] == playlist:
@@ -80,6 +138,18 @@ class bot_plugin(object):
         return tracks_final
 
     def get_album_tracks(self, album, artist):
+        """Get all tracks from a given album
+
+        Args:
+            album (Str): album name to search
+            artist (Str): artist name to search
+        
+        Raises:
+            AlbumError: if cannot find given album
+        
+        Returns:
+            list: tracks from the given album
+        """
         artist_results = self.spotify.search(artist, type='artist')['artists']['items']
         if len(artist_results) <= 0:
             raise ArtistError
@@ -120,7 +190,20 @@ class bot_plugin(object):
             tracks_final.append(self._get_track_format_(track))
         return tracks_final
 
-    def get_song_recommendations(self, songs=[], artists=[], genres=[], ):
+    def get_song_recommendations(self, songs=[], artists=[], genres=[]):
+        """Gets a list of 20 song recommendations
+
+        Args:
+            songs (list): list of songs to get recommendations off of
+            artists (list): list of songs to get recommendations off of
+            genres (list): list of songs to get recommendations off of
+
+        Raises:
+            AssertionError: if length of songs, artists, or genres is longer than 5
+
+        Returns:
+            list: list of recommended songs
+        """
         if len(songs) + len(artists) + len(genres) > 5:
             raise AssertionError('Too many arguements passed in, must be 5 or less')
 
@@ -136,9 +219,22 @@ class bot_plugin(object):
         return [self._get_track_format_(track) for track in tracks['tracks']]
 
     def get_genres(self):
+        """Gets all Genres
+
+        Returns:
+            list: list of all genres
+        """
         return self.genres
 
     def get_user_playlists(self, username='spotify'):
+        """Gets the users playlist
+
+        Args:
+            username (Str): username of Spotify user Defaults to spotify
+        
+        Returns:
+            list: list of a users playlists
+        """
         playlists = self.spotify.user_playlists(username, limit=50)
         playlist_list = []
         while playlists:
@@ -147,6 +243,11 @@ class bot_plugin(object):
         return playlist_list
 
     def get_categories(self):
+        """Gets a list of categories from Spotify
+
+        Returns:
+            list: a list of category id's
+        """
         category_list = []
         categories = self.spotify.categories()
         while categories:
@@ -155,6 +256,14 @@ class bot_plugin(object):
         return category_list
 
     def get_category_playlists(self, category_id):
+        """Gets a list of playlists based off a category_id
+
+        Args:
+            category_id (Str): category id
+        
+        Returns:
+            list: list of playlists based off of a category ID
+        """
         playlist_list = []
         playlists = self.spotify.category_playlists(category_id)
         while playlists:
@@ -163,6 +272,11 @@ class bot_plugin(object):
         return playlist_list
 
     def get_featured_playlists(self):
+        """Gets Spotify featured playlists
+
+        Returns:
+            list: list of featured playlists
+        """
         playlist_results = self.spotify.featured_playlists()['playlists']
         playlist_list = []
         while playlist_results:
@@ -171,5 +285,6 @@ class bot_plugin(object):
         return playlist_list
 
     def refresh_token(self):
+        """Refeshes the users Spotify token"""
         token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=token)

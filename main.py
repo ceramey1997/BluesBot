@@ -28,12 +28,17 @@ client = discord.Client()
 bot = bluesbot.BluesBot(stopper)
 #TODO: Figure out how to get the server without causing an infinite loop
 
+
 @client.event
 async def on_message(message):
+    """handles incoming messages from discord"""
     await bot.on_message_start(client, message)
+
 
 @client.event
 async def on_ready():
+    """starts bot on ready"""
     await bot.on_ready_start(client)
+
 
 client.run(TOKEN)
