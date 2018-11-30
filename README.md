@@ -1,7 +1,6 @@
 This is our README <br><br>
 
 Things to do <br>
--Get bot to leave if queue is empty <br>
 -have bot say goodbye <br>
 -fix global variable issue<br>
 -Update readme<br>
