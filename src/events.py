@@ -51,6 +51,10 @@ class Event_Message:
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
+        if message.content.startswith('!remove'):
+            song = message.content.replace('!remove ', '')
+            await self.remove_song(client, message, song)
+
         if message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
 
@@ -88,7 +92,10 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper, message)
+            await self.
+            
+            
+            (client, song_queue[0], stopper, message)
 
         await self.change_status(client, msg)
 
@@ -192,6 +199,7 @@ class Event_Message:
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper, message)
         else:
+            await voice_client.disconnect()
             firstFlag = False
 
     async def change_status(self, client, song_name):
