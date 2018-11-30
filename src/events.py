@@ -167,19 +167,22 @@ class Event_Message:
         await self.create_embed(client, message, title, msg)
 
     async def _join(self, client, message):
-        if not client.is_voice_connected(client.get_server('501955815222149150')):
+        server_id = message.author.server.id
+        if not client.is_voice_connected(client.get_server(server_id)):
             voice_channel = message.author.voice.voice_channel
             if voice_channel == None:
                 await self.create_embed(client, message, title="you don't seem to be in the channel")
-                return
+                return None
             voice_client = await client.join_voice_channel(voice_channel)
-        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
+        voice_client = client.voice_client_in(client.get_server(server_id))
         return voice_client
 
     async def message_play_song(self, client, query, stopper, message):
         global firstFlag
         global player
         voice_client = await self._join(client, message)
+        if voice_client is None:
+            return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.volume = 0.1
