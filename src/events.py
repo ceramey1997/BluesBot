@@ -59,6 +59,10 @@ class Event_Message:
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
+        if message.content.startswith('!remove'):
+            song = message.content.replace('!remove ', '')
+            await self.remove_song(client, message, song)
+
         if message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
 
@@ -97,7 +101,7 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper)
+            await self.message_play_song(client, song_queue[0], stopper, message)
 
         await self.change_status(client, msg)
 
@@ -132,7 +136,7 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper)
+            await self.message_play_song(client, song_queue[0], stopper, message)
 
     async def message_queue(self, client, message):
         index = 1
@@ -172,17 +176,20 @@ class Event_Message:
             index += 1
         await self.create_embed(client, message, title, msg)
 
-    async def _join(self, client):
+    async def _join(self, client, message):
         if not client.is_voice_connected(client.get_server('501955815222149150')):
-            channel = client.get_channel('501955815222149154')
-            voice_client = await client.join_voice_channel(channel)
+            voice_channel = message.author.voice.voice_channel
+            if voice_channel == None:
+                await self.create_embed(client, message, title="you don't seem to be in the channel")
+                return
+            voice_client = await client.join_voice_channel(voice_channel)
         voice_client = client.voice_client_in(client.get_server('501955815222149150'))
         return voice_client
 
-    async def message_play_song(self, client, query, stopper):
+    async def message_play_song(self, client, query, stopper, message):
         global firstFlag
         global player
-        voice_client = await self._join(client)
+        voice_client = await self._join(client, message)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
         player.volume = 0.1
@@ -197,8 +204,9 @@ class Event_Message:
         #await asyncio.sleep(int(player.duration))
         song_queue.pop(0)
         if len(song_queue) > 0:
-            await self.message_play_song(client, song_queue[0], stopper)
+            await self.message_play_song(client, song_queue[0], stopper, message)
         else:
+            await voice_client.disconnect()
             firstFlag = False
 
     async def change_status(self, client, song_name):
