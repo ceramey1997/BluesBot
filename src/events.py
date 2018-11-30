@@ -63,6 +63,10 @@ class Event_Message:
         # wait self.create_embed(client, message, None, msg, True)
         await client.send_message(message.channel, msg, tts=True)
 
+    async def _goodbye(self, client, message):
+        msg = 'Later nerds!'
+        await client.send_message(message.channel, msg, tts=True)
+
     async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
         album, artist = msg.split(",")
@@ -195,6 +199,7 @@ class Event_Message:
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper, message)
         else:
+            await self._goodbye(client, message)
             await voice_client.disconnect()
             firstFlag = False
 
