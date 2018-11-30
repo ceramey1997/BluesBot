@@ -210,6 +210,7 @@ class Event_Message:
     async def message_play_song(self, client, query, stopper, message):
         global firstFlag
         global player
+        firstFlag = False
         voice_client = await self._join(client, message)
         if voice_client is None:
             return
@@ -272,6 +273,7 @@ class Event_Message:
         await self._create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
     
     async def add_recommendations(self, client, message, stopper):
+        global firstFlag
         person =  users[message.author.name]
         try:
             recs = person.recommendations
@@ -283,16 +285,15 @@ class Event_Message:
             self.song_queue.add_song(song)
             users[message.author.name].history.insert(0, song)
             description += '\n' + song
-        if self.song_queue.length_queue() == 1:
-            global firstFlag
-            firstFlag = True
+            if self.song_queue.length_queue() == 1:
+                firstFlag = True
         title = "Songs Added To Queue From:\n\tRecommendations"
         await self._create_embed(client, message, title, description)
 
         if firstFlag:
             await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
             
-    async def message_quit(self, stopper, clientß):
+    async def message_quit(self, stopper, client):
         if self.song_queue.length_queue() > 0:
             self.song_queue.clear_queue()
             self.song_queue.add_song('null')
