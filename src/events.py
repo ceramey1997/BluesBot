@@ -32,8 +32,8 @@ class Event_Message:
                     else:
                         msg = message.content.replace('!play ', '')
                         song_queue.append(msg)
+                        users[message.author.name].history.insert(0, msg)
                         if len(song_queue) == 1:
-                            users[message.author.name].history.insert(0, msg)
                             await self.message_play_song(client, msg, stopper, message)
                 break
             except SpotifyException:
@@ -76,8 +76,13 @@ class Event_Message:
             await self.message_restart(stopper,client)
 
     async def message_hello(self, client, message):
-        msg = 'Hello {0.author.mention}'.format(message)
-        await self._create_embed(client, message, description=msg)
+        msg = 'Hello ' + message.author.name
+        # wait self.create_embed(client, message, None, msg, True)
+        await client.send_message(message.channel, msg, tts=True)
+
+    async def _goodbye(self, client, message):
+        msg = 'Later nerds!'
+        await client.send_message(message.channel, msg, tts=True)
 
     async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
@@ -148,9 +153,7 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
-        mention = message.author.mention
-
-        title = mention + ' The current song queue is:'
+        title = 'The current song queue is:'
         msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
@@ -160,21 +163,21 @@ class Event_Message:
 
     async def message_history(self, client, message):
 
-        user = None
+        username = ''
         title = 'Here are the last 10 songs requested by '
 
         if message.content.strip().lower() == '!history':
-            user = message.author
+            username = message.author.name
         else:
             for key in users:
-                if message.content[9:] == users[key].mention: #TODO: This doesn't work :(
-                    user = users[key]
+                if message.content[9:] == key:
+                    username = key
 
-        if user is None:
+        if username is '':
             await client.send_message(message.channel, 'That user does not exist')
             return
-        title +=  user.mention
-        history = users[user.name].history
+        title +=  username     
+        history = users[username].history
         msg = ''
         index = 0
         while index < 10:
@@ -203,7 +206,7 @@ class Event_Message:
             return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.25
+        player.volume = 0.9 # 0.25
         player.start()
         await self._change_status(client, query)
         for i in range(int(player.duration)):
@@ -213,10 +216,12 @@ class Event_Message:
                 stopper.set_flag(False)
                 break
         #await asyncio.sleep(int(player.duration))
+        
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper, message)
         else:
+            await self._goodbye(client, message)
             await voice_client.disconnect()
             firstFlag = False
 
@@ -226,12 +231,12 @@ class Event_Message:
     async def message_repeat(self, client, message):
         current_song = song_queue[0]
         song_queue.insert(1, current_song)
-        msg = message.author.mention + ' ' + current_song + ' will be repeated'
+        msg = current_song + ' will be repeated'
         await client.send_message(message.channel, msg)
 
     async def _create_embed(self, client, message, title=None, description=None):
         em = discord.Embed(title=title, description=description, colour=0xDEADBF)
-        em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
+        # em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
     async def message_skip(self, stopper, client):
