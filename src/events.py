@@ -32,8 +32,8 @@ class Event_Message:
                     else:
                         msg = message.content.replace('!play ', '')
                         song_queue.append(msg)
+                        users[message.author.name].history.insert(0, msg)
                         if len(song_queue) == 1:
-                            users[message.author.name].history.insert(0, msg)
                             await self.message_play_song(client, msg, stopper, message)
                 break
             except SpotifyException:
@@ -217,6 +217,7 @@ class Event_Message:
                 stopper.set_flag(False)
                 break
         #await asyncio.sleep(int(player.duration))
+        
         song_queue.pop(0)
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper, message)

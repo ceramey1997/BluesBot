@@ -65,10 +65,13 @@ class bot_plugin(object):
         return track_temp + track['name']
 
     def get_playlist_tracks(self, playlist, username='spotify'):
-        playlists = self.spotify.user_playlists(username)['items']
-        for p in playlists:
-            if p['name'] == playlist:
-                break
+        # playlists = self.spotify.user_playlists(username)['items']
+        # for p in playlists:
+        #     if p['name'] == playlist:
+        #         break
+        playlist_results = self.spotify.search(playlist + ' ' + username,type='playlist')['playlists']['items']
+        if len(playlist_results) > 0:
+            p = playlist_results[0]
         else:
             raise PlaylistError
 
