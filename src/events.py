@@ -46,11 +46,15 @@ class Event_Message:
         if message.content.startswith('!skip'):
             await self.message_pause(stopper)
 
+        if message.content.startswith('!remove'):
+            song = message.content.replace('!remove ', '')
+            await self.remove_song(client, message, song)
+
         if message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
 
     async def message_hello(self, client, message):
-        msg = 'Hello ' + message.author
+        msg = 'Hello ' + message.author.name
         # wait self.create_embed(client, message, None, msg, True)
         await client.send_message(message.channel, msg, tts=True)
 
@@ -169,6 +173,7 @@ class Event_Message:
         voice_client = await self._join(client)
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
+        player.volume = 0.1
         player.start()
         await self.change_status(client, query)
         for i in range(int(player.duration)):
@@ -182,6 +187,7 @@ class Event_Message:
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper)
         else:
+            await voice_client.disconnect()
             firstFlag = False
 
     async def change_status(self, client, song_name):
@@ -202,6 +208,15 @@ class Event_Message:
         global player
         stopper.set_flag(True)
 
+    async def remove_song(self, client, message, song_name):
+        for song in song_queue:
+            if song_name.lower() in song.lower():
+                song_queue.remove(song)
+                msg = song + " has been removed from the queue"
+                await self.create_embed(client, message, title=msg)
+                return
+        msg = song + " is not found in the queue"
+        await self.create_embed(client, message, title=msg)
 '''
 class Event_Ready:
     # on_ready features here
