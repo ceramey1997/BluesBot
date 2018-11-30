@@ -188,6 +188,7 @@ class Event_Message:
         if len(song_queue) > 0:
             await self.message_play_song(client, song_queue[0], stopper)
         else:
+            await voice_client.disconnect()
             firstFlag = False
 
     async def change_status(self, client, song_name):
