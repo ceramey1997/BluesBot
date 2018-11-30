@@ -256,10 +256,7 @@ class Event_Message:
 
     async def get_recommendations(self, client, message):
         person =  users[message.author.name]
-        if len(person.history) < 5:
-            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:len(person.history)]])
-        else:
-            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:5]])
+        recommendations = spotify_object.get_song_recommendations(songs=[person.history[:5]])
         msg = ''
         person.recommendations = recommendations
         for line in recommendations:
