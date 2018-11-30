@@ -53,6 +53,12 @@ class Event_Message:
         if message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
 
+        if message.content.startswith('!quit'):
+            await self.message_quit(stopper)
+
+        if message.content.startswith('!restart'):
+            await self.message_restart(stopper)
+
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
         await self.create_embed(client, message, None, msg)
@@ -218,6 +224,18 @@ class Event_Message:
                 return
         msg = song + " is not found in the queue"
         await self.create_embed(client, message, title=msg)
+
+    async def message_quit(self, stopper):
+        if len(song_queue) > 0:
+            song_queue.clear()
+            song_queue.append('null')
+            await self.message_pause(stopper)
+
+    async def message_restart(self, stopper):
+        song_queue.insert(0, song_queue[0])
+        await self.message_pause(stopper)
+
+
 '''
 class Event_Ready:
     # on_ready features here
