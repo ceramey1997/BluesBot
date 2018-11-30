@@ -47,17 +47,13 @@ class Event_Message:
         elif message.content.startswith('!history'):
             await self.message_history(client, message)
         elif message.content.startswith('!join'):
-            await self.join(client, message)
+            await self._join(client, message)
 
         elif message.content.startswith('!help'):
             await self.help(client, message)
 
         elif message.content.startswith('!skip'):
-            await self.message_pause(stopper)
-        
-        elif message.content.startswith('!remove'):
-            song = message.content.replace('!remove ', '')
-            await self.remove_song(client, message, song)
+            await self.message_skip(stopper,client)
 
         elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
@@ -74,10 +70,10 @@ class Event_Message:
             
             
         elif message.content.startswith('!quit'):
-            await self.message_quit(stopper)
+            await self.message_quit(stopper,client)
 
         elif message.content.startswith('!restart'):
-            await self.message_restart(stopper)
+            await self.message_restart(stopper,client)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -261,7 +257,7 @@ class Event_Message:
         person.recommendations = recommendations
         for line in recommendations:
             msg += line + '\n' 
-        await self.create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
+        await self._create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
     
     async def add_recommendations(self, client, message, stopper):
         person =  users[message.author.name]
@@ -279,22 +275,22 @@ class Event_Message:
             global firstFlag
             firstFlag = True
         title = "Songs Added To Queue From:\n\tRecommendations"
-        await self.create_embed(client, message, title, description)
+        await self._create_embed(client, message, title, description)
 
         if firstFlag:
             await self.message_play_song(client, song_queue[0], stopper, message)
         
             
             
-    async def message_quit(self, stopper):
+    async def message_quit(self, stopper,client):
         if len(song_queue) > 0:
             song_queue.clear()
             song_queue.append('null')
-            await self.message_pause(stopper)
+            await self.message_skip(stopper,client)
 
-    async def message_restart(self, stopper):
+    async def message_restart(self, stopper,client):
         song_queue.insert(0, song_queue[0])
-        await self.message_pause(stopper)
+        await self.message_skip(stopper,client)
 
     async def help(self, client, message):
         msg = "!play album - plays an album. input is as \"!play album, artist\""
