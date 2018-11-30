@@ -1,18 +1,23 @@
 import discord
 from  src.users import user
 from src.search_engine import search_yt
+
 import asyncio
 import logging
 from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 from spotipy.client import SpotifyException
+
 users = {}
-song_queue = []
 spotify_object = bot_plugin()
 firstFlag = False
 player = None
 
 class Event_Message:
-    log = logging.getLogger()
+
+    def __init__(self, song_queue):
+        log = logging.getLogger()
+        self.song_queue = song_queue
+
     async def message_recieved(self, client, message, stopper):
         if message.author.name not in users:
             userIn = user.User(message.author)
@@ -31,9 +36,9 @@ class Event_Message:
                         await self.message_play_playlist(client, message, channel, stopper)
                     else:
                         msg = message.content.replace('!play ', '')
-                        song_queue.append(msg)
+                        self.song_queue.add_song(msg)
                         users[message.author.name].history.insert(0, msg)
-                        if len(song_queue) == 1:
+                        if self.song_queue.length_queue() == 1:
                             await self.message_play_song(client, msg, stopper, message)
                 break
             except SpotifyException:
@@ -53,7 +58,11 @@ class Event_Message:
             await self.help(client, message)
 
         elif message.content.startswith('!skip'):
-            await self.message_skip(stopper,client)
+            await self.message_skip(stopper, client)
+        
+        elif message.content.startswith('!remove'):
+            song = message.content.replace('!remove ', '')
+            await self.remove_song(client, message, song)
 
         elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
@@ -70,7 +79,7 @@ class Event_Message:
             
             
         elif message.content.startswith('!quit'):
-            await self.message_quit(stopper,client)
+            await self.message_quit(stopper, client)
 
         elif message.content.startswith('!restart'):
             await self.message_restart(stopper,client)
@@ -104,10 +113,10 @@ class Event_Message:
             await client.send_message(channel, msg)
             return
         for song in album_info:
-            song_queue.append(song)
+            self.song_queue.add_song(song)
             users[message.author.name].history.insert(0, song)
             description += "\n" + song
-            if len(song_queue) == 1:
+            if self.song_queue.length_queue() == 1:
                 global firstFlag
                 firstFlag = True
 
@@ -115,7 +124,7 @@ class Event_Message:
         await self._create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper, message)
+            await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
 
 
     async def message_play_playlist(self, client, message, channel, stopper):
@@ -138,10 +147,10 @@ class Event_Message:
             await client.send_message(channel, msg)
             return
         for song in playlist_info:
-            song_queue.append(song)
+            self.song_queue.add_song(song)
             users[message.author.name].history.insert(0, song)
             description += '\n' + song
-            if len(song_queue) == 1:
+            if self.song_queue.length_queue() == 1:
                 global firstFlag
                 firstFlag = True
 
@@ -149,13 +158,13 @@ class Event_Message:
         await self._create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper, message)
+            await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
 
     async def message_queue(self, client, message):
         index = 1
         title = 'The current song queue is:'
         msg = ''
-        for song in song_queue:
+        for song in self.song_queue.get_list():
             msg += '\n ' + str(index) + '. ' + song
             index += 1
 
@@ -201,6 +210,7 @@ class Event_Message:
     async def message_play_song(self, client, query, stopper, message):
         global firstFlag
         global player
+        firstFlag = False
         voice_client = await self._join(client, message)
         if voice_client is None:
             return
@@ -216,10 +226,9 @@ class Event_Message:
                 stopper.set_flag(False)
                 break
         #await asyncio.sleep(int(player.duration))
-        
-        song_queue.pop(0)
-        if len(song_queue) > 0:
-            await self.message_play_song(client, song_queue[0], stopper, message)
+        self.song_queue.pop_song()
+        if self.song_queue.length_queue() > 0:
+            await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
         else:
             await self._goodbye(client, message)
             await voice_client.disconnect()
@@ -229,8 +238,8 @@ class Event_Message:
         await client.change_presence(game=discord.Game(name=song_name))
 
     async def message_repeat(self, client, message):
-        current_song = song_queue[0]
-        song_queue.insert(1, current_song)
+        current_song = self.song_queue.get_song(0)
+        self.song_queue.insert_song(1, current_song)
         msg = current_song + ' will be repeated'
         await client.send_message(message.channel, msg)
 
@@ -245,9 +254,9 @@ class Event_Message:
         stopper.set_flag(True)
 
     async def remove_song(self, client, message, song_name):
-        for song in song_queue:
+        for song in self.song_queue.get_list():
             if song_name.lower() in song.lower():
-                song_queue.remove(song)
+                self.song_queue.remove_song(song)
                 msg = song + " has been removed from the queue"
                 await self._create_embed(client, message, title=msg)
                 return
@@ -264,6 +273,7 @@ class Event_Message:
         await self._create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
     
     async def add_recommendations(self, client, message, stopper):
+        global firstFlag
         person =  users[message.author.name]
         try:
             recs = person.recommendations
@@ -272,29 +282,26 @@ class Event_Message:
             recs = person.recommendations
         description = ''
         for song in recs:
-            song_queue.append(song)
+            self.song_queue.add_song(song)
             users[message.author.name].history.insert(0, song)
             description += '\n' + song
-        if len(song_queue) == 1:
-            global firstFlag
-            firstFlag = True
+            if self.song_queue.length_queue() == 1:
+                firstFlag = True
         title = "Songs Added To Queue From:\n\tRecommendations"
         await self._create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, song_queue[0], stopper, message)
-        
+            await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
             
-            
-    async def message_quit(self, stopper,client):
-        if len(song_queue) > 0:
-            song_queue.clear()
-            song_queue.append('null')
-            await self.message_skip(stopper,client)
+    async def message_quit(self, stopper, client):
+        if self.song_queue.length_queue() > 0:
+            self.song_queue.clear_queue()
+            self.song_queue.add_song('null')
+            await self.message_skip(stopper, client)
 
-    async def message_restart(self, stopper,client):
-        song_queue.insert(0, song_queue[0])
-        await self.message_skip(stopper,client)
+    async def message_restart(self, stopper):
+        self.song_queue.insert_song(0, self.song_queue.get_song(0))
+        await self.message_skip(stopper, client)
 
     async def help(self, client, message):
         msg = "play album - plays an album. input is as \"!play album, artist\""
