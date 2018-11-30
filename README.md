@@ -15,6 +15,7 @@ Things to do <br>
 - HAVE FUN<br>
 - Continous playing<br>
 - local library <br>
+- add error handling when youtube download fails<br>
 
 to run this bot you need to install: <br>
   - opus <br>
