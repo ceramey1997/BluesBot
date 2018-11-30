@@ -34,7 +34,7 @@ class Event_Message:
                         song_queue.append(msg)
                         if len(song_queue) == 1:
                             users[message.author.name].history.insert(0, msg)
-                            await self.message_play_song(client, msg, stopper)
+                            await self.message_play_song(client, msg, stopper, message)
                 break
             except SpotifyException:
                 spotify_object.refresh_token()
