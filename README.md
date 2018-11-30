@@ -9,6 +9,7 @@ Things to do <br>
 - make queue class instead of global variable<br>
 - invesigate terminal issues<br>
 - add close feature<br>
+- initialize stop sign in Bluesbot instead of main + make event messages a class variable<br>
 - show song length on !queue <br>
 - HAVE FUN<br>
 - Continous playing<br>
