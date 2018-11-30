@@ -37,15 +37,9 @@ class Event_Message:
                         await self.message_play_playlist(client, message, channel, stopper)
                     else:
                         msg = message.content.replace('!play ', '')
-<<<<<<< HEAD
                         self.song_queue.add_song(msg)
-                        if self.song_queue.length_queue() == 1:
-                            users[message.author.name].history.insert(0, msg)
-=======
-                        song_queue.append(msg)
                         users[message.author.name].history.insert(0, msg)
-                        if len(song_queue) == 1:
->>>>>>> a417752ae70ec952bee23a8a92acb83af2b92317
+                        if self.song_queue.length_queue() == 1:
                             await self.message_play_song(client, msg, stopper, message)
                 break
             except SpotifyException:
@@ -232,16 +226,9 @@ class Event_Message:
                 stopper.set_flag(False)
                 break
         #await asyncio.sleep(int(player.duration))
-<<<<<<< HEAD
         self.song_queue.pop_song()
         if self.song_queue.length_queue() > 0:
             await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
-=======
-        
-        song_queue.pop(0)
-        if len(song_queue) > 0:
-            await self.message_play_song(client, song_queue[0], stopper, message)
->>>>>>> a417752ae70ec952bee23a8a92acb83af2b92317
         else:
             await self._goodbye(client, message)
             await voice_client.disconnect()
@@ -251,15 +238,9 @@ class Event_Message:
         await client.change_presence(game=discord.Game(name=song_name))
 
     async def message_repeat(self, client, message):
-<<<<<<< HEAD
         current_song = self.song_queue.get_song(0)
         self.song_queue.insert_song(1, current_song)
-        msg = message.author.mention + ' ' + current_song + ' will be repeated'
-=======
-        current_song = song_queue[0]
-        song_queue.insert(1, current_song)
         msg = current_song + ' will be repeated'
->>>>>>> a417752ae70ec952bee23a8a92acb83af2b92317
         await client.send_message(message.channel, msg)
 
     async def _create_embed(self, client, message, title=None, description=None):
@@ -312,27 +293,15 @@ class Event_Message:
         if firstFlag:
             await self.message_play_song(client, self.song_queue(0), stopper, message)
             
-<<<<<<< HEAD
     async def message_quit(self, stopper):
         if self.song_queue.length_queue() > 0:
-            self.song_queue = self.song_queue.clear_queue()
+            self.song_queue.clear_queue()
             self.song_queue.add_song('null')
             await self.message_skip(stopper, client)
 
     async def message_restart(self, stopper):
         self.song_queue.insert_song(0, self.song_queue.get_song(0))
         await self.message_skip(stopper, client)
-=======
-    async def message_quit(self, stopper,client):
-        if len(song_queue) > 0:
-            song_queue.clear()
-            song_queue.append('null')
-            await self.message_skip(stopper,client)
-
-    async def message_restart(self, stopper,client):
-        song_queue.insert(0, song_queue[0])
-        await self.message_skip(stopper,client)
->>>>>>> a417752ae70ec952bee23a8a92acb83af2b92317
 
     async def help(self, client, message):
         msg = "play album - plays an album. input is as \"!play album, artist\""
