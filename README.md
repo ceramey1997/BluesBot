@@ -11,7 +11,8 @@ Things to do <br>
 -add close feature<br>
 -show song length on !queue <br>
 -HAVE FUN<br>
-
+- Continous playing<br>
+- local library <br>
 
 to run this bot you need to install: <br>
   - opus <br>
