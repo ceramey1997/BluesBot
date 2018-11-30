@@ -6,6 +6,9 @@ Things to do <br>
 -Update readme<br>
 -general cleanup + commenting<br>
 -implement spotify commands on bot side<br>
+-make queue class instead of global variable<br>
+-invesigate terminal issues<br>
+-add close feature<br>
 -HAVE FUN<br>
 
 
@@ -14,4 +17,4 @@ to run this bot you need to install: <br>
   - youtube_dl <br>
   - ffmpeg <br>
   <br>
- and you need to run no more than python 3.6 <br>
+ and you need to run no more than python 3.6 but in the 3s <br>
