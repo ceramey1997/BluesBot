@@ -83,20 +83,37 @@ class bot_plugin(object):
         artist_results = self.spotify.search(artist, type='artist')['artists']['items']
         if len(artist_results) <= 0:
             raise ArtistError
-        for artist_found in artist_results:
-            album_results = self.spotify.search(album, type='album')['albums']
-            for album in album_results['items']:
-                for artist in album['artists']:
-                    if artist['id'] == artist_found['id']:
-                        break
-                else:
-                    continue
-                break
-            else:
-                continue
-            break
+        album_results = self.spotify.search(album + ' ' +  artist, type='album')['albums']['items']
+        # for album in album_results['items']:
+        #     for artist_found in artist_results:
+        #         for artist in album['artists']:
+        #             if artist['id'] == artist_found['id']:
+        #                 break
+        #         else:
+        #             continue
+        #         break
+        #     else:
+        #         continue
+        #     break
+        print(album_results)
+        if len(album_results) > 0:
+            album = album_results[0]
         else:
             raise AlbumError
+        # for artist_found in artist_results:
+        #     album_results = self.spotify.search(album + ' ' +  artist, type='album')['albums']
+        #     for album in album_results['items']:
+        #         for artist in album['artists']:
+        #             if artist['id'] == artist_found['id']:
+        #                 break
+        #         else:
+        #             continue
+        #         break
+        #     else:
+        #         continue
+        #     break
+        # else:
+        #     raise AlbumError
         
         tracks_temp = self.spotify.album_tracks(album['id'])
         tracks_final = []
