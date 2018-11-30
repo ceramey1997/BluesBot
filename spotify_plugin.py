@@ -98,7 +98,6 @@ class bot_plugin(object):
         #     else:
         #         continue
         #     break
-        print(album_results)
         if len(album_results) > 0:
             album = album_results[0]
         else:
