@@ -1,7 +1,6 @@
 import discord
 from  src.users import user
 from src.search_engine import search_yt
-from src.queue_utils import SongQueue
 
 import asyncio
 import logging
@@ -15,9 +14,9 @@ player = None
 
 class Event_Message:
 
-    def __init__(self):
+    def __init__(self, song_queue):
         log = logging.getLogger()
-        self.song_queue = SongQueue()
+        self.song_queue = song_queue
 
     async def message_recieved(self, client, message, stopper):
         if message.author.name not in users:
@@ -80,7 +79,7 @@ class Event_Message:
             
             
         elif message.content.startswith('!quit'):
-            await self.message_quit(stopper,client)
+            await self.message_quit(stopper, client)
 
         elif message.content.startswith('!restart'):
             await self.message_restart(stopper,client)
@@ -291,9 +290,9 @@ class Event_Message:
         await self._create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.message_play_song(client, self.song_queue(0), stopper, message)
+            await self.message_play_song(client, self.song_queue.get_song(0), stopper, message)
             
-    async def message_quit(self, stopper):
+    async def message_quit(self, stopper, clientß):
         if self.song_queue.length_queue() > 0:
             self.song_queue.clear_queue()
             self.song_queue.add_song('null')
