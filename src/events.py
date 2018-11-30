@@ -68,6 +68,12 @@ class Event_Message:
 
         elif message.content.startswith('!rec'):
             await self.get_recs(client, message)
+            
+        elif message.content.startswith('!quit'):
+            await self.message_quit(stopper)
+
+        elif message.content.startswith('!restart'):
+            await self.message_restart(stopper)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -180,22 +186,25 @@ class Event_Message:
         await self.create_embed(client, message, title, msg)
 
     async def _join(self, client, message):
-        if not client.is_voice_connected(client.get_server('501955815222149150')):
+        server_id = message.author.server.id
+        if not client.is_voice_connected(client.get_server(server_id)):
             voice_channel = message.author.voice.voice_channel
             if voice_channel == None:
                 await self.create_embed(client, message, title="you don't seem to be in the channel")
-                return
+                return None
             voice_client = await client.join_voice_channel(voice_channel)
-        voice_client = client.voice_client_in(client.get_server('501955815222149150'))
+        voice_client = client.voice_client_in(client.get_server(server_id))
         return voice_client
 
     async def message_play_song(self, client, query, stopper, message):
         global firstFlag
         global player
         voice_client = await self._join(client, message)
+        if voice_client is None:
+            return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.1
+        player.volume = 0.25
         player.start()
         await self.change_status(client, query)
         for i in range(int(player.duration)):
@@ -226,8 +235,9 @@ class Event_Message:
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
-    async def message_pause(self, stopper):
+    async def message_skip(self, stopper, client):
         global player
+        await self.change_status(client, None)
         stopper.set_flag(True)
 
     async def remove_song(self, client, message, song_name):
@@ -252,6 +262,17 @@ class Event_Message:
         await self.create_embed(client, message,title='Songs recommended to you '+message.author.name,description=msg)
         
             
+    async def message_quit(self, stopper):
+        if len(song_queue) > 0:
+            song_queue.clear()
+            song_queue.append('null')
+            await self.message_pause(stopper)
+
+    async def message_restart(self, stopper):
+        song_queue.insert(0, song_queue[0])
+        await self.message_pause(stopper)
+
+
 '''
 class Event_Ready:
     # on_ready features here
