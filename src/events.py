@@ -112,7 +112,6 @@ class Event_Message:
         if firstFlag:
             await self.message_play_song(client, song_queue[0], stopper, message)
 
-        await self._change_status(client, msg)
 
     async def message_play_playlist(self, client, message, channel, stopper):
         msg = message.content.replace('!play playlist ', '')
