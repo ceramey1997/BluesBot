@@ -298,16 +298,18 @@ class Event_Message:
         await self.message_skip(stopper,client)
 
     async def help(self, client, message):
-        msg = "!play album - plays an album. input is as \"!play album, artist\""
-        msg += "\n!play playlist - plays a playlist from spotify. input as: \"!play playlist, username\""
-        msg += "\n!play - plays a single song from youtube. input as: \"!play songInfo\""
-        msg += "\n!queue - returns the music queue"
-        msg += "\n!history - returns the previous 10 songs a user has played. input as \"!history\" or \"!history username\""
+        msg = "play album - plays an album. input is as \"!play album, artist\""
+        msg += "\nplay playlist - plays a playlist from spotify. input as: \"!play playlist, username\""
+        msg += "\nplay - plays a single song from youtube. input as: \"!play songInfo\""
+        msg += "\nqueue - returns the music queue"
+        msg += "\nhistory - returns the previous 10 songs a user has played. input as \"!history\" or \"!history username\""
         msg += "\nrepeat - repeats the song that is playing. input as \"!repeat song_name\""
         msg += "\nskip - skips current song playing. input as \"!skip\""
         msg += "\nremove song - removes the said song. input as \"!remove song_name\""
         msg += "\nquit - removes bot from voice channel, and restarts the queue. input as \"!quit\""
         msg += "\nrestart - restarts the song that is currently playing. input as \"!restart\""
+        msg += "\nrec get - gets a list of 20 songs recommended to you based on your previous five queue'd songs. input as \"!rec get\""
+        msg += "\nrec add - adds a list of 20 songs recommended to you to the queue. input as \"!rec add\""
 
         await self._create_embed(client, message, description=msg)
 '''
