@@ -92,10 +92,7 @@ class Event_Message:
         await self.create_embed(client, message, title, description)
 
         if firstFlag:
-            await self.
-            
-            
-            (client, song_queue[0], stopper, message)
+            await self.message_play_song(client, song_queue[0], stopper, message)
 
         await self.change_status(client, msg)
 
