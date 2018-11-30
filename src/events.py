@@ -30,7 +30,7 @@ class Event_Message:
                 song_queue.append(msg)
                 if len(song_queue) == 1:
                     users[message.author.name].history.insert(0, msg)
-                    await self.message_play_song(client, message.content, stopper)
+                    await self.message_play_song(client, msg, stopper)
 
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
@@ -50,8 +50,9 @@ class Event_Message:
             await self.message_repeat(client, message)
 
     async def message_hello(self, client, message):
-        msg = 'Hello {0.author.mention}'.format(message)
-        await self.create_embed(client, message, None, msg)
+        msg = 'Hello ' + message.author
+        # wait self.create_embed(client, message, None, msg, True)
+        await client.send_message(message.channel, msg, tts=True)
 
     async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
@@ -121,13 +122,7 @@ class Event_Message:
 
     async def message_queue(self, client, message):
         index = 1
-<<<<<<< HEAD
         title = 'The current song queue is:'
-=======
-        mention = message.author.mention
-
-        title = mention + ' The current song queue is:'
->>>>>>> 1d2de78cc6671c26e1d7674eebf5489314aa08e7
         msg = ''
         for song in song_queue:
             msg += '\n ' + str(index) + '. ' + song
@@ -137,7 +132,6 @@ class Event_Message:
 
     async def message_history(self, client, message):
 
-<<<<<<< HEAD
         username = ''
         title = 'Here are the last 10 songs requested by '
 
@@ -196,13 +190,13 @@ class Event_Message:
     async def message_repeat(self, client, message):
         current_song = song_queue[0]
         song_queue.insert(1, current_song)
-        msg = message.author.mention + ' ' + current_song + ' will be repeated'
+        msg = current_song + ' will be repeated'
         await client.send_message(message.channel, msg)
 
-    async def create_embed(self, client, message, title=None, description=None):
+    async def create_embed(self, client, message, title=None, description=None, tts=False):
         em = discord.Embed(title=title, description=description, colour=0xDEADBF)
-        em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
-        await client.send_message(message.channel, embed=em)
+        # em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
+        await client.send_message(message.channel, embed=em, tts=tts)
 
     async def message_pause(self, stopper):
         global player
