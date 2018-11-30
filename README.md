@@ -1,7 +1,7 @@
 This is our README <br><br>
 
 Things to do <br>
--add to help command <br>
+-enhance help command <br>
 -fix global variable issue<br>
 -Update readme<br>
 -general cleanup + commenting<br>
