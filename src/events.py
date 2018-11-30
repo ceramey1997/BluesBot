@@ -303,6 +303,8 @@ class Event_Message:
         msg += "\nremove song - removes the said song. input as \"!remove song_name\""
         msg += "\nquit - removes bot from voice channel, and restarts the queue. input as \"!quit\""
         msg += "\nrestart - restarts the song that is currently playing. input as \"!restart\""
+        msg += "\nrec get - gets a list of 20 songs recommended to you based on your previous five queue'd songs. input as \"!rec get\""
+        msg += "\nrec add - adds a list of 20 songs recommended to you to the queue. input as \"!rec add\""
 
         await self._create_embed(client, message, description=msg)
 '''
