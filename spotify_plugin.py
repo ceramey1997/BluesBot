@@ -47,16 +47,16 @@ class bot_plugin(object):
         self.genres = self.spotify.recommendation_genre_seeds()['genres']
         
     def _get_song_(self, song_name, ):
-        results = self.spotify.search(song_name, type='track')['items']
-        if len(results) == 0:
-            raise TrackError('Track not found')
-        return results[0]
-
-    def _get_artist_(self, artist_name):
-        results = self.spotify.search(artist_name, type='artist',limit=50)['items']
+        results = self.spotify.search(song_name, type='track')['tracks']['items']
         if len(results) <= 0:
             raise TrackError('Track not found')
-        return results[0]
+        return results[0]['id']
+
+    def _get_artist_(self, artist_name):
+        results = self.spotify.search(artist_name, type='artist')['artists']['items']
+        if len(results) <= 0:
+            raise TrackError('Track not found')
+        return results[0]['id']
 
     def _get_track_format_(self, track):
         track_temp = ''
@@ -104,7 +104,7 @@ class bot_plugin(object):
             tracks_final.append(self._get_track_format_(track))
         return tracks_final
 
-    def get_song_recs(self, songs=None, artists=None, genres=None, ):
+    def get_song_recommendations(self, songs=[], artists=[], genres=[], ):
         if len(songs) + len(artists) + len(genres) > 5:
             raise AssertionError('Too many arguements passed in, must be 5 or less')
 
@@ -117,7 +117,7 @@ class bot_plugin(object):
             artist_ids.append(self._get_artist_(artist))
 
         tracks = self.spotify.recommendations(seed_artists=artist_ids, seed_genres=genres, seed_tracks=song_ids)
-        return [self._get_track_format_(track) for track in tracks]
+        return [self._get_track_format_(track) for track in tracks['tracks']]
 
     def get_genres(self):
         return self.genres
@@ -154,6 +154,6 @@ class bot_plugin(object):
             playlist_results = self.spotify.next(playlist_results)
         return playlist_list
 
-    def _refresh_token_(self):
+    def refresh_token(self):
         token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=token)
