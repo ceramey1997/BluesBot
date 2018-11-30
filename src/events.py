@@ -40,7 +40,7 @@ class Event_Message:
                 spotify_object.refresh_token()
                 tries += 1
         assert tries < 3, 'Could not get token'
-        
+
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
@@ -80,7 +80,7 @@ class Event_Message:
             elif isinstance(e, ArtistError):
                 msg = 'Invalid artist name'
             else:
-                self.log.error(str(e)
+                self.log.error(str(e))
                 print(e.args)
                 return
             await client.send_message(channel, msg)
