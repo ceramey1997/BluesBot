@@ -207,7 +207,7 @@ class Event_Message:
             return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.25
+        player.volume = 0.9 # 0.25
         player.start()
         await self._change_status(client, query)
         for i in range(int(player.duration)):
