@@ -154,6 +154,6 @@ class bot_plugin(object):
             playlist_results = self.spotify.next(playlist_results)
         return playlist_list
 
-    def _refresh_token_(self):
+    def refresh_token(self):
         token = Util.prompt_for_user_token(username='jay101pk', scope='user-library-read')
         self.spotify = spotipy.Spotify(auth=token)

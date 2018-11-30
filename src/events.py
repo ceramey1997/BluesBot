@@ -4,7 +4,7 @@ from src.search_engine import search_yt
 import asyncio
 import logging
 from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
-
+from spotipy.client import SpotifyException
 users = {}
 song_queue = []
 spotify_object = bot_plugin()
@@ -20,20 +20,27 @@ class Event_Message:
 
         if message.content.startswith('!hello'):
             await self.message_hello(client, message)
+        tries = 0
+        while tries < 3: 
+            try:
+                if message.content.startswith('!play'):
+                    channel = message.channel
+                    if message.content.startswith('!play album'):
+                        await self.message_play_album(client, message, channel, stopper)
+                    elif message.content.startswith('!play playlist'):
+                        await self.message_play_playlist(client, message, channel, stopper)
+                    else:
+                        msg = message.content.replace('!play ', '')
+                        song_queue.append(msg)
+                        if len(song_queue) == 1:
+                            users[message.author.name].history.insert(0, msg)
+                            await self.message_play_song(client, msg, stopper)
 
-        if message.content.startswith('!play'):
-            channel = message.channel
-            if message.content.startswith('!play album'):
-                await self.message_play_album(client, message, channel, stopper)
-            elif message.content.startswith('!play playlist'):
-                await self.message_play_playlist(client, message, channel, stopper)
-            else:
-                msg = message.content.replace('!play ', '')
-                song_queue.append(msg)
-                if len(song_queue) == 1:
-                    users[message.author.name].history.insert(0, msg)
-                    await self.message_play_song(client, msg, stopper)
-
+            except SpotifyException:
+                spotify_object.refresh_token()
+                tries += 1
+        assert tries < 3, 'Could not get token'
+        
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
