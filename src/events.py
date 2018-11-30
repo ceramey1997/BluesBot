@@ -81,7 +81,7 @@ class Event_Message:
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
-        await self.create_embed(client, message, None, msg)
+        await self._create_embed(client, message, description=msg)
 
     async def message_play_album(self, client, message, channel, stopper):
         msg = message.content.replace('!play album ', '')
@@ -111,12 +111,12 @@ class Event_Message:
                 firstFlag = True
 
         title = "Songs Added To Queue:\n\tAlbum: " + album + "\n\tArtist: " + artist
-        await self.create_embed(client, message, title, description)
+        await self._create_embed(client, message, title, description)
 
         if firstFlag:
             await self.message_play_song(client, song_queue[0], stopper, message)
 
-        await self.change_status(client, msg)
+        await self._change_status(client, msg)
 
     async def message_play_playlist(self, client, message, channel, stopper):
         msg = message.content.replace('!play playlist ', '')
@@ -146,7 +146,7 @@ class Event_Message:
                 firstFlag = True
 
         title = "Songs Added To Queue From:\n\t" + playlist
-        await self.create_embed(client, message, title, description)
+        await self._create_embed(client, message, title, description)
 
         if firstFlag:
             await self.message_play_song(client, song_queue[0], stopper, message)
@@ -161,7 +161,7 @@ class Event_Message:
             msg += '\n ' + str(index) + '. ' + song
             index += 1
 
-        await self.create_embed(client, message, title, msg)
+        await self._create_embed(client, message, title, msg)
 
     async def message_history(self, client, message):
 
@@ -187,14 +187,14 @@ class Event_Message:
                 break
             msg += '\n ' + str(index + 1) + '. ' + history[index]
             index += 1
-        await self.create_embed(client, message, title, msg)
+        await self._create_embed(client, message, title, msg)
 
     async def _join(self, client, message):
         server_id = message.author.server.id
         if not client.is_voice_connected(client.get_server(server_id)):
             voice_channel = message.author.voice.voice_channel
             if voice_channel == None:
-                await self.create_embed(client, message, title="you don't seem to be in the channel")
+                await self._create_embed(client, message, title="you don't seem to be in the channel")
                 return None
             voice_client = await client.join_voice_channel(voice_channel)
         voice_client = client.voice_client_in(client.get_server(server_id))
@@ -210,7 +210,7 @@ class Event_Message:
         player = await voice_client.create_ytdl_player(url)
         player.volume = 0.25
         player.start()
-        await self.change_status(client, query)
+        await self._change_status(client, query)
         for i in range(int(player.duration)):
             await asyncio.sleep(1)
             if stopper.get_flag():
@@ -225,7 +225,7 @@ class Event_Message:
             await voice_client.disconnect()
             firstFlag = False
 
-    async def change_status(self, client, song_name):
+    async def _change_status(self, client, song_name):
         await client.change_presence(game=discord.Game(name=song_name))
 
     async def message_repeat(self, client, message):
@@ -234,14 +234,14 @@ class Event_Message:
         msg = message.author.mention + ' ' + current_song + ' will be repeated'
         await client.send_message(message.channel, msg)
 
-    async def create_embed(self, client, message, title=None, description=None):
+    async def _create_embed(self, client, message, title=None, description=None):
         em = discord.Embed(title=title, description=description, colour=0xDEADBF)
         em.set_author(name='Blues Bot', icon_url=client.user.default_avatar_url)
         await client.send_message(message.channel, embed=em)
 
     async def message_skip(self, stopper, client):
         global player
-        await self.change_status(client, None)
+        await self._change_status(client, None)
         stopper.set_flag(True)
 
     async def remove_song(self, client, message, song_name):
@@ -249,10 +249,10 @@ class Event_Message:
             if song_name.lower() in song.lower():
                 song_queue.remove(song)
                 msg = song + " has been removed from the queue"
-                await self.create_embed(client, message, title=msg)
+                await self._create_embed(client, message, title=msg)
                 return
         msg = song + " is not found in the queue"
-        await self.create_embed(client, message, title=msg)
+        await self._create_embed(client, message, title=msg)
 
     async def get_recommendations(self, client, message):
         person =  users[message.author.name]
@@ -296,7 +296,19 @@ class Event_Message:
         song_queue.insert(0, song_queue[0])
         await self.message_pause(stopper)
 
+    async def help(self, client, message):
+        msg = "!play album - plays an album. input is as \"!play album, artist\""
+        msg += "\n!play playlist - plays a playlist from spotify. input as: \"!play playlist, username\""
+        msg += "\n!play - plays a single song from youtube. input as: \"!play songInfo\""
+        msg += "\n!queue - returns the music queue"
+        msg += "\n!history - returns the previous 10 songs a user has played. input as \"!history\" or \"!history username\""
+        msg += "\nrepeat - repeats the song that is playing. input as \"!repeat song_name\""
+        msg += "\nskip - skips current song playing. input as \"!skip\""
+        msg += "\nremove song - removes the said song. input as \"!remove song_name\""
+        msg += "\nquit - removes bot from voice channel, and restarts the queue. input as \"!quit\""
+        msg += "\nrestart - restarts the song that is currently playing. input as \"!restart\""
 
+        await self._create_embed(client, message, description=msg)
 '''
 class Event_Ready:
     # on_ready features here
