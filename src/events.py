@@ -35,7 +35,7 @@ class Event_Message:
                         if len(song_queue) == 1:
                             users[message.author.name].history.insert(0, msg)
                             await self.message_play_song(client, msg, stopper)
-
+                break
             except SpotifyException:
                 spotify_object.refresh_token()
                 tries += 1
@@ -44,27 +44,30 @@ class Event_Message:
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
-        if message.content.startswith('!history'):
+        elif message.content.startswith('!history'):
             await self.message_history(client, message)
-        if message.content.startswith('!join'):
+        elif message.content.startswith('!join'):
             await self.join(client, message)
 
-        if message.content.startswith('!help'):
+        elif message.content.startswith('!help'):
             await self.help(client, message)
 
-        if message.content.startswith('!skip'):
+        elif message.content.startswith('!skip'):
             await self.message_pause(stopper)
         
-        if message.content.startswith('!remove'):
+        elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
-        if message.content.startswith('!remove'):
+        elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
-        if message.content.startswith('!repeat'):
+        elif message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
+
+        elif message.content.startswith('!rec'):
+            await self.get_recs(client, message)
 
     async def message_hello(self, client, message):
         msg = 'Hello {0.author.mention}'.format(message)
@@ -236,6 +239,19 @@ class Event_Message:
                 return
         msg = song + " is not found in the queue"
         await self.create_embed(client, message, title=msg)
+
+    async def get_recs(self, client, message):
+        person =  users[message.author.name]
+        if len(person.history) < 5:
+            recs = spotify_object.get_song_recs(songs=[person.history[:len(person.history)]])
+        else:
+            recs = spotify_object.get_song_recs(songs=[person.history[:5]])
+        msg = ''
+        for line in recs:
+            msg += line + '\n' 
+        await self.create_embed(client, message,title='Songs recommended to you '+message.author.name,description=msg)
+        
+            
 '''
 class Event_Ready:
     # on_ready features here
