@@ -67,7 +67,11 @@ class Event_Message:
             await self.message_repeat(client, message)
 
         elif message.content.startswith('!rec'):
-            await self.get_recs(client, message)
+            if message.content.startswith('!rec get'):
+                await self.get_recommendations(client, message)
+            elif message.content.startswith('!rec add'):
+                await self.add_recommendations(client, message, stopper)
+            
             
         elif message.content.startswith('!quit'):
             await self.message_quit(stopper)
@@ -250,17 +254,40 @@ class Event_Message:
         msg = song + " is not found in the queue"
         await self.create_embed(client, message, title=msg)
 
-    async def get_recs(self, client, message):
+    async def get_recommendations(self, client, message):
         person =  users[message.author.name]
         if len(person.history) < 5:
-            recs = spotify_object.get_song_recs(songs=[person.history[:len(person.history)]])
+            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:len(person.history)]])
         else:
-            recs = spotify_object.get_song_recs(songs=[person.history[:5]])
+            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:5]])
         msg = ''
-        for line in recs:
+        person.recommendations = recommendations
+        for line in recommendations:
             msg += line + '\n' 
-        await self.create_embed(client, message,title='Songs recommended to you '+message.author.name,description=msg)
+        await self.create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
+    
+    async def add_recommendations(self, client, message, stopper):
+        person =  users[message.author.name]
+        try:
+            recs = person.recommendations
+        except AttributeError:
+            await self.get_recommendations(client, message)
+            recs = person.recommendations
+        description = ''
+        for song in recs:
+            song_queue.append(song)
+            users[message.author.name].history.insert(0, song)
+            description += '\n' + song
+        if len(song_queue) == 1:
+            global firstFlag
+            firstFlag = True
+        title = "Songs Added To Queue From:\n\tRecommendations"
+        await self.create_embed(client, message, title, description)
+
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0], stopper, message)
         
+            
             
     async def message_quit(self, stopper):
         if len(song_queue) > 0:
