@@ -6,18 +6,19 @@ import discord
 # local
 from src import events
 from src.queue import SongQueue
+from src import stop_sign
 
 
 class BluesBot:
     """Class to create the bot object
-    
+
     Attributes:
         stopper (Stop_Sign): object to see if song is playing or not
         song_queue (SongQueue): song queue object to handle all queue interactions
         event_msg (event): the message sent in discord
     """
-    def __init__(self, stopper):
-        self.stopper = stopper
+    def __init__(self):
+        self.stopper = stop_sign.Stop_Sign(False)
         self.song_queue = SongQueue()
         self.event_msg = events.Event_Message(self.song_queue)
 
@@ -27,7 +28,7 @@ class BluesBot:
         Args:
             client (Client): client object for discord
             message (Message): message object from discord
-        
+
         Returns:
             None: if the author is the bot
         """
@@ -39,7 +40,7 @@ class BluesBot:
 
     async def on_ready_start(self, client):
         """Tells the user when the bot is ready to go
-        
+
         Args:
             client (Client): client object for discord
         """

@@ -23,9 +23,8 @@ f.close()
 
 TOKEN = creds['DISCORD_TOKEN']
 
-stopper = stop_sign.Stop_Sign(False)
 client = discord.Client()
-bot = bluesbot.BluesBot(stopper)
+bot = bluesbot.BluesBot()
 #TODO: Figure out how to get the server without causing an infinite loop
 
 
