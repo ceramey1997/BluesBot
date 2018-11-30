@@ -35,7 +35,11 @@ class Event_Message:
                         if len(song_queue) == 1:
                             users[message.author.name].history.insert(0, msg)
                             await self.message_play_song(client, msg, stopper, message)
+<<<<<<< HEAD
 
+=======
+                break
+>>>>>>> e9882596740dee68d676084283c46a983a065669
             except SpotifyException:
                 spotify_object.refresh_token()
                 tries += 1
@@ -44,32 +48,39 @@ class Event_Message:
         if message.content.startswith('!queue'):
             await self.message_queue(client, message)
 
-        if message.content.startswith('!history'):
+        elif message.content.startswith('!history'):
             await self.message_history(client, message)
-        if message.content.startswith('!join'):
+        elif message.content.startswith('!join'):
             await self.join(client, message)
 
-        if message.content.startswith('!help'):
+        elif message.content.startswith('!help'):
             await self.help(client, message)
 
-        if message.content.startswith('!skip'):
-            await self.message_skip(stopper, client)
+        elif message.content.startswith('!skip'):
+            await self.message_pause(stopper)
         
-        if message.content.startswith('!remove'):
+        elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
-        if message.content.startswith('!remove'):
+        elif message.content.startswith('!remove'):
             song = message.content.replace('!remove ', '')
             await self.remove_song(client, message, song)
 
-        if message.content.startswith('!repeat'):
+        elif message.content.startswith('!repeat'):
             await self.message_repeat(client, message)
 
-        if message.content.startswith('!quit'):
+        elif message.content.startswith('!rec'):
+            if message.content.startswith('!rec get'):
+                await self.get_recommendations(client, message)
+            elif message.content.startswith('!rec add'):
+                await self.add_recommendations(client, message, stopper)
+            
+            
+        elif message.content.startswith('!quit'):
             await self.message_quit(stopper)
 
-        if message.content.startswith('!restart'):
+        elif message.content.startswith('!restart'):
             await self.message_restart(stopper)
 
     async def message_hello(self, client, message):
@@ -247,6 +258,39 @@ class Event_Message:
         msg = song + " is not found in the queue"
         await self._create_embed(client, message, title=msg)
 
+    async def get_recommendations(self, client, message):
+        person =  users[message.author.name]
+        if len(person.history) < 5:
+            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:len(person.history)]])
+        else:
+            recommendations = spotify_object.get_song_recommendations(songs=[person.history[:5]])
+        msg = ''
+        person.recommendations = recommendations
+        for line in recommendations:
+            msg += line + '\n' 
+        await self.create_embed(client, message, title='Songs recommended to you ' + message.author.name, description=msg)
+    
+    async def add_recommendations(self, client, message, stopper):
+        person =  users[message.author.name]
+        try:
+            recs = person.recommendations
+        except AttributeError:
+            await self.get_recommendations(client, message)
+            recs = person.recommendations
+        description = ''
+        for song in recs:
+            song_queue.append(song)
+            users[message.author.name].history.insert(0, song)
+            description += '\n' + song
+        if len(song_queue) == 1:
+            global firstFlag
+            firstFlag = True
+        title = "Songs Added To Queue From:\n\tRecommendations"
+        await self.create_embed(client, message, title, description)
+
+        if firstFlag:
+            await self.message_play_song(client, song_queue[0], stopper, message)
+            
     async def message_quit(self, stopper):
         if len(song_queue) > 0:
             song_queue.clear()
