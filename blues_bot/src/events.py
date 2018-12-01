@@ -21,7 +21,7 @@ class Event_Message:
         song_queue (SongQueue): song_queue object, a list of songs in queue
     """
     def __init__(self, song_queue):
-        log = logging.getLogger()
+        self.log = logging.getLogger()
         self.stopper = stop_sign.Stop_Sign(False)
         self.song_queue = song_queue
         self.first_flag = False
@@ -144,7 +144,7 @@ class Event_Message:
         except SpotifyError as spot_error:
             if isinstance(spot_error, AlbumError):
                 msg = 'Invalid album name'
-            elif isinstance(e, ArtistError):
+            elif isinstance(spot_error, ArtistError):
                 msg = 'Invalid artist name'
             else:
                 self.log.error(str(spot_error))
@@ -165,7 +165,9 @@ class Event_Message:
                                  title, description)
 
         if self.first_flag:
-            await self.message_play_song(client, self.song_queue.get_song(0), message)
+            await self.message_play_song(client,
+                                         self.song_queue.get_song(0),
+                                         message)
 
     async def message_play_playlist(self, client, message, channel):
         """Takes the input of an playlist and plays if first thing
@@ -208,7 +210,9 @@ class Event_Message:
                                  title, description)
 
         if self.first_flag:
-            await self.message_play_song(client, self.song_queue.get_song(0), message)
+            await self.message_play_song(client,
+                                         self.song_queue.get_song(0),
+                                         message)
 
     async def message_queue(self, client, message):
         """Sends a message of what is on the current Queue.
@@ -249,7 +253,7 @@ class Event_Message:
             await client.send_message(message.channel,
                                       'That user does not exist')
             return
-        title +=  username
+        title += username
         history = self.users[username].history
         msg = ''
         index = 0
@@ -270,8 +274,9 @@ class Event_Message:
         server_id = message.author.server.id
         if not client.is_voice_connected(client.get_server(server_id)):
             voice_channel = message.author.voice.voice_channel
-            if voice_channel == None:
-                await self._create_embed(client, message, title="you don't seem to be in the channel")
+            if not voice_channel:
+                title = "you don't seem to be in the channel"
+                await self._create_embed(client, message, title=title)
                 return None
             voice_client = await client.join_voice_channel(voice_channel)
         voice_client = client.voice_client_in(client.get_server(server_id))
@@ -292,7 +297,7 @@ class Event_Message:
             return
         url = search_yt(query)
         player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.9 # 0.25
+        player.volume = 0.9  # 0.25
         player.start()
         await self._change_status(client, query)
         for i in range(int(player.duration)):
@@ -386,8 +391,8 @@ class Event_Message:
             client (Client): client object from Discord
             message (Message): message object from Discord
         """
-        person =  self.users[message.author.name]
-        # pylint: disable=E501
+        person = self.users[message.author.name]
+        # pylint: disable=line-to-long
         recommendations = self.spotify_object.get_song_recommendations(songs=[person.history[:5]])
         msg = ''
         person.recommendations = recommendations
