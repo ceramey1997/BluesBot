@@ -12,12 +12,6 @@ from src import stop_sign
 from spotify_plugin import bot_plugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
 from spotipy.client import SpotifyException
 
-users = {}
-spotify_object = bot_plugin()
-firstFlag = False
-player = None
-
-
 class Event_Message:
     """Handles user input.
 
@@ -28,6 +22,9 @@ class Event_Message:
         log = logging.getLogger()
         self.stopper = stop_sign.Stop_Sign(False)
         self.song_queue = song_queue
+        self.firstFlag = False
+        self.users = {}
+        self.spotify_object = bot_plugin()
 
     async def message_recieved(self, client, message):
         """top level recieve message function that handles all incoming message.
@@ -36,9 +33,9 @@ class Event_Message:
             client (Client): client object from Discord
             message (Message): message object from Discord
         """
-        if message.author.name not in users:
+        if message.author.name not in self.users:
             userIn = user.User(message.author)
-            users[message.author.name] = userIn
+            self.users[message.author.name] = userIn
 
         if message.content.startswith('!hello'):
             await self.message_hello(client, message)
@@ -54,12 +51,12 @@ class Event_Message:
                     else:
                         msg = message.content.replace('!play ', '')
                         self.song_queue.add_song(msg)
-                        users[message.author.name].history.insert(0, msg)
+                        self.users[message.author.name].history.insert(0, msg)
                         if self.song_queue.length_queue() == 1:
                             await self.message_play_song(client, msg, message)
                 break
             except SpotifyException:
-                spotify_object.refresh_token()
+                self.spotify_object.refresh_token()
                 tries += 1
         assert tries < 3, 'Could not get token'
 
@@ -137,7 +134,7 @@ class Event_Message:
         artist = artist.strip()
         description = ''
         try:
-            album_info = spotify_object.get_album_tracks(album, artist)
+            album_info = self.spotify_object.get_album_tracks(album, artist)
         except SpotifyError as e:
             if isinstance(e, AlbumError):
                 msg = 'Invalid album name'
@@ -151,16 +148,15 @@ class Event_Message:
             return
         for song in album_info:
             self.song_queue.add_song(song)
-            users[message.author.name].history.insert(0, song)
+            self.users[message.author.name].history.insert(0, song)
             description += "\n" + song
             if self.song_queue.length_queue() == 1:
-                global firstFlag
-                firstFlag = True
+                self.firstFlag = True
 
         title = "Songs Added To Queue:\n\tAlbum: " + album + "\n\tArtist: " + artist
         await self._create_embed(client, message, title, description)
 
-        if firstFlag:
+        if self.firstFlag:
             await self.message_play_song(client, self.song_queue.get_song(0), message)
 
 
@@ -179,7 +175,7 @@ class Event_Message:
         username = username.strip()
         description = ''
         try:
-            playlist_info = spotify_object.get_playlist_tracks(playlist, username)
+            playlist_info = self.spotify_object.get_playlist_tracks(playlist, username)
         except SpotifyError as e:
             if isinstance(e, PlaylistError):
                 msg = 'Invalid playlist name'
@@ -193,16 +189,15 @@ class Event_Message:
             return
         for song in playlist_info:
             self.song_queue.add_song(song)
-            users[message.author.name].history.insert(0, song)
+            self.users[message.author.name].history.insert(0, song)
             description += '\n' + song
             if self.song_queue.length_queue() == 1:
-                global firstFlag
-                firstFlag = True
+                self.firstFlag = True
 
         title = "Songs Added To Queue From:\n\t" + playlist
         await self._create_embed(client, message, title, description)
 
-        if firstFlag:
+        if self.firstFlag:
             await self.message_play_song(client, self.song_queue.get_song(0), message)
 
     async def message_queue(self, client, message):
@@ -235,7 +230,7 @@ class Event_Message:
         if message.content.strip().lower() == '!history':
             username = message.author.name
         else:
-            for key in users:
+            for key in self.users:
                 if message.content[9:] == key:
                     username = key
 
@@ -243,7 +238,7 @@ class Event_Message:
             await client.send_message(message.channel, 'That user does not exist')
             return
         title +=  username
-        history = users[username].history
+        history = self.users[username].history
         msg = ''
         index = 0
         while index < 10:
@@ -279,9 +274,7 @@ class Event_Message:
             query (Str): song name and artist to query youtube with
             message (Message): message object from Discord
         """
-        global firstFlag
-        global player
-        firstFlag = False
+        self.firstFlag = False
         voice_client = await self._join(client, message)
         if voice_client is None:
             return
@@ -303,7 +296,7 @@ class Event_Message:
         else:
             await self._goodbye(client, message)
             await voice_client.disconnect()
-            firstFlag = False
+            self.firstFlag = False
 
     async def _change_status(self, client, song_name):
         """Changes the status of the bot
@@ -349,7 +342,6 @@ class Event_Message:
         Args:
             client (Client): client object from Discord
         """
-        global player
         await self._change_status(client, None)
         self.stopper.set_flag(True)
 
@@ -379,8 +371,8 @@ class Event_Message:
             client (Client): client object from Discord
             message (Message): message object from Discord
         """
-        person =  users[message.author.name]
-        recommendations = spotify_object.get_song_recommendations(songs=[person.history[:5]])
+        person =  self.users[message.author.name]
+        recommendations = self.spotify_object.get_song_recommendations(songs=[person.history[:5]])
         msg = ''
         person.recommendations = recommendations
         for line in recommendations:
@@ -395,8 +387,7 @@ class Event_Message:
             client (Client): client object from Discord
             message (Message): message object from Discord
         """
-        global firstFlag
-        person =  users[message.author.name]
+        person =  self.users[message.author.name]
         try:
             recs = person.recommendations
         except AttributeError:
@@ -405,14 +396,14 @@ class Event_Message:
         description = ''
         for song in recs:
             self.song_queue.add_song(song)
-            users[message.author.name].history.insert(0, song)
+            self.users[message.author.name].history.insert(0, song)
             description += '\n' + song
             if self.song_queue.length_queue() == 1:
-                firstFlag = True
+                self.firstFlag = True
         title = "Songs Added To Queue From:\n\tRecommendations"
         await self._create_embed(client, message, title, description)
 
-        if firstFlag:
+        if self.firstFlag:
             await self.message_play_song(client, self.song_queue.get_song(0), message)
 
     async def message_quit(self, client):
