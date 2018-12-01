@@ -1,2 +1,2 @@
 spotipy
-discord
+discord.py

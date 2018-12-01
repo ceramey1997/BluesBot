@@ -6,7 +6,7 @@ import asyncio
 import logging
 
 # local
-from  src.users import user
+from src.users import user
 from src.search_engine import search_yt
 from src import stop_sign
 from spotify_plugin import SpotifyPlugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
@@ -24,7 +24,7 @@ class Event_Message:
         self.song_queue = song_queue
         self.firstFlag = False
         self.users = {}
-        self.spotify_object = bot_plugin()
+        self.spotify_object = SpotifyPlugin()
 
     async def message_recieved(self, client, message):
         """top level recieve message function that handles all incoming message.

@@ -1,3 +1,4 @@
+"""handles message input, bot object"""
 # Work with Python 3.6
 
 # third-party
@@ -13,11 +14,11 @@ class BluesBot:
 
     Attributes:
         stopper (Stop_Sign): object to see if song is playing or not
-        song_queue (SongQueue): song queue object to handle all queue interactions
+        song_queue (SongQueue): song queue object to
+                                handle all queue interactions
         event_msg (event): the message sent in discord
     """
     def __init__(self):
-        #self.stopper = stop_sign.Stop_Sign(False)
         self.song_queue = SongQueue()
         self.event_msg = events.Event_Message(self.song_queue)
 
