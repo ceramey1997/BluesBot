@@ -252,7 +252,7 @@ class SpotifyPlugin:
                                               seed_tracks=song_ids)
         song_recs = []
         for track in tracks['tracks']:
-            song_recs += SpotifyPlugin._get_track_format_(track)
+            song_recs.append(SpotifyPlugin._get_track_format_(track))
         return song_recs
 
     def get_genres(self):

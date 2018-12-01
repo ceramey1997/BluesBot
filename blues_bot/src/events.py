@@ -457,7 +457,7 @@ class Event_Message:
         msg += "\nplay playlist - plays a playlist from spotify. input as:"
         msg += " \"!play playlist, username\""
 
-        msg += "\nplay - plays a single song from youtube.
+        msg += "\nplay - plays a single song from youtube."
         msg += " input as: \"!play songInfo\""
 
         msg += "\nqueue - returns the music queue"
@@ -470,7 +470,7 @@ class Event_Message:
 
         msg += "\nskip - skips current song playing. input as \"!skip\""
 
-        msg += "\nremove song - removes the said song. input as
+        msg += "\nremove song - removes the said song. input as"
         msg += " \"!remove song_name\""
 
         msg += "\nquit - removes bot from voice channel, and"
