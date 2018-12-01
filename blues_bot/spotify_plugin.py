@@ -5,6 +5,10 @@ import os
 import spotipy
 import spotipy.util as Util
 
+# local
+from blues_bot.exceptions import spotify_exceptions
+
+
 __genres__ = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient',
               'anime', 'black-metal', 'bluegrass', 'blues', 'bossanova',
               'brazil', 'breakbeat', 'british', 'cantopop', 'chicago-house',
@@ -29,30 +33,6 @@ __genres__ = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient',
               'songwriter', 'soul', 'soundtracks', 'spanish', 'study',
               'summer', 'swedish', 'synth-pop', 'tango', 'techno',
               'trance', 'trip-hop', 'turkish', 'work-out', 'world-music']
-
-
-class SpotifyError(Exception):
-    """General Spotify Error"""
-
-
-class ArtistError(SpotifyError):
-    """Spotify Artist Error"""
-
-
-class AlbumError(SpotifyError):
-    """Spotify Album Error"""
-
-
-class UserError(SpotifyError):
-    """Spotify User Error"""
-
-
-class PlaylistError(SpotifyError):
-    """Spotify Playlist Error"""
-
-
-class TrackError(SpotifyError):
-    """Spotify Track Error"""
 
 
 class SpotifyPlugin:
@@ -85,7 +65,7 @@ class SpotifyPlugin:
         results = self.spotify.search(song_name, type='track')
         results = results['tracks']['items']
         if not results:
-            raise TrackError('Track not found')
+            raise spotify_exceptions.TrackError('Track not found')
         return results[0]['id']
 
     def _get_artist_(self, artist_name):
@@ -103,7 +83,7 @@ class SpotifyPlugin:
         results = self.spotify.search(artist_name, type='artist')
         results = results['artists']['items']
         if not results:
-            raise TrackError('Track not found')
+            raise spotify_exceptions.TrackError('Track not found')
         return results[0]['id']
 
     @classmethod
@@ -144,7 +124,7 @@ class SpotifyPlugin:
                 tracks_result = tracks_result['tracks']
                 break
         else:
-            raise PlaylistError
+            raise spotify_exceptions.PlaylistError
 
         tracks_end = []
         while tracks_result:
@@ -161,7 +141,7 @@ class SpotifyPlugin:
             artist (Str): artist name to search
 
         Raises:
-            AlbumError: if cannot find given album
+            spotify_exceptions.AlbumError: if cannot find given album
 
         Returns:
             list: tracks from the given album
@@ -170,7 +150,7 @@ class SpotifyPlugin:
                                              type='artist')
         artist_results = artist_results['artists']['items']
         if not artist_results:
-            raise ArtistError
+            raise spotify_exceptions.ArtistError
         album_results = self.spotify.search(album + ' ' + artist, type='album')
         album_results = album_results['albums']['items']
         # for album in album_results['items']:
@@ -187,7 +167,7 @@ class SpotifyPlugin:
         if album_results:
             album = album_results[0]
         else:
-            raise AlbumError
+            raise spotify_exceptions.AlbumError
         # for artist_found in artist_results:
         #     album_results = self.spotify.search(album + ' ' +  artist,
         #                                         type='album')
@@ -203,7 +183,7 @@ class SpotifyPlugin:
         #         continue
         #     break
         # else:
-        #     raise AlbumError
+        #     raise spotify_exceptions.AlbumError
 
         tracks_temp = self.spotify.album_tracks(album['id'])
         tracks_final = []

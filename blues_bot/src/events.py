@@ -8,26 +8,33 @@ from spotipy.client import SpotifyException
 import discord
 
 # local
-from src.users import user
-from src.search_engine import search_yt
-from src import stop_sign
-from spotify_plugin import SpotifyPlugin, SpotifyError, AlbumError, ArtistError, PlaylistError, UserError
+from blues_bot.src.users.user import User
+from blues_bot.src.search_engine import search_yt
+from blues_bot.src.stop_sign import StopSign
+from blues_bot.spotify_plugin import SpotifyPlugin
+from blues_bot.exceptions import spotify_exceptions
 
 
-class Event_Message:
+class EventMessage:
     """Handles user input.
 
-    Args:
+    Attributes:
         song_queue (SongQueue): song_queue object, a list of songs in queue
+        stopper (StopSign): StopSign object for if song is playing or not
+        song_queue (list): song queue list
+        first_flag (bool): stops it from playing if song is already playing
+        users (dictionary): users with history
+        sp_ob (SpotifyPlugin): SpotifyPlugin Object to handle spotify stuff
     """
     def __init__(self, song_queue):
         self.log = logging.getLogger()
-        self.stopper = stop_sign.Stop_Sign(False)
+        self.stopper = StopSign(False)
         self.song_queue = song_queue
         self.first_flag = False
         self.users = {}
-        self.spotify_object = SpotifyPlugin()
+        self.sp_ob = SpotifyPlugin()
 
+    # pylint: disable=R0912, R0915
     async def message_recieved(self, client, message):
         """top level recieve message function that
            handles all incoming message.
@@ -37,7 +44,7 @@ class Event_Message:
             message (Message): message object from Discord
         """
         if message.author.name not in self.users:
-            user_in = user.User(message.author)
+            user_in = User(message.author)
             self.users[message.author.name] = user_in
 
         if message.content.startswith('!hello'):
@@ -63,7 +70,7 @@ class Event_Message:
                             await self.message_play_song(client, msg, message)
                 break
             except SpotifyException:
-                self.spotify_object.refresh_token()
+                self.sp_ob.refresh_token()
                 tries += 1
         assert tries < 3, 'Could not get token'
 
@@ -140,11 +147,11 @@ class Event_Message:
         artist = artist.strip()
         description = ''
         try:
-            album_info = self.spotify_object.get_album_tracks(album, artist)
-        except SpotifyError as spot_error:
-            if isinstance(spot_error, AlbumError):
+            album_info = self.sp_ob.get_album_tracks(album, artist)
+        except spotify_exceptions.SpotifyError as spot_error:
+            if isinstance(spot_error, spotify_exceptions.AlbumError):
                 msg = 'Invalid album name'
-            elif isinstance(spot_error, ArtistError):
+            elif isinstance(spot_error, spotify_exceptions.ArtistError):
                 msg = 'Invalid artist name'
             else:
                 self.log.error(str(spot_error))
@@ -185,12 +192,12 @@ class Event_Message:
         description = ''
         try:
             playlist_info = (
-                self.spotify_object.get_playlist_tracks(playlist,
-                                                        username))
-        except SpotifyError as spot_error:
-            if isinstance(spot_error, PlaylistError):
+                self.sp_ob.get_playlist_tracks(playlist,
+                                               username))
+        except spotify_exceptions.SpotifyError as spot_error:
+            if isinstance(spot_error, spotify_exceptions.PlaylistError):
                 msg = 'Invalid playlist name'
-            elif isinstance(spot_error, UserError):
+            elif isinstance(spot_error, spotify_exceptions.UserError):
                 msg = 'Invalid username'
             else:
                 self.log.error(str(spot_error))
@@ -249,7 +256,7 @@ class Event_Message:
                 if msg == key:
                     username = key
 
-        if username is '':
+        if not username:
             await client.send_message(message.channel,
                                       'That user does not exist')
             return
@@ -300,6 +307,8 @@ class Event_Message:
         player.volume = 0.9  # 0.25
         player.start()
         await self._change_status(client, query)
+
+        # pylint: disable=W0612
         for i in range(int(player.duration)):
             await asyncio.sleep(1)
             if self.stopper.get_flag():
@@ -348,7 +357,7 @@ class Event_Message:
             client (Client): client object from Discord
             message (Message): message object from Discord
             title (Str): title to add as embed object
-            description (Stop_Sign): Description box of embed object
+            description (Str): Description box of embed object
 
         """
         embed = discord.Embed(title=title,
@@ -392,11 +401,11 @@ class Event_Message:
             message (Message): message object from Discord
         """
         person = self.users[message.author.name]
-        # pylint: disable=line-to-long
-        recommendations = self.spotify_object.get_song_recommendations(songs=[person.history[:5]])
+        # pep8 --ignore=E501
+        recs = self.sp_ob.get_song_recommendations(songs=[person.history[:5]])
         msg = ''
-        person.recommendations = recommendations
-        for line in recommendations:
+        person.recommendations = recs
+        for line in recs:
             msg += line + '\n'
         title = 'Songs recommended to you ' + message.author.name
         await self._create_embed(client, message,
@@ -494,16 +503,14 @@ class Event_Message:
         await self._create_embed(client, message, description=msg)
 
 
-"""
-class Event_Ready:
-    # on_ready features here
+# class Event_Ready:
+#     # on_ready features here
 
-class Event_Reaction:
-    # on_reaction features here
+# class Event_Reaction:
+#     # on_reaction features here
 
-class Event_Server_Join:
-    # on_server_join features here
+# class Event_Server_Join:
+#     # on_server_join features here
 
-class Event_Server_Remove:
-    # on_server_remove features here
-"""
+# class Event_Server_Remove:
+#     # on_server_remove features here

@@ -4,7 +4,7 @@ import json
 import logging
 
 import discord
-from src import bluesbot
+from blues_bot.src.bluesbot import BluesBot
 
 LOG = logging.getLogger()
 LOG.setLevel(logging.DEBUG)
@@ -27,7 +27,7 @@ TOKEN = CREDS['DISCORD_TOKEN']
 
 # pylint: disable=C0103
 client = discord.Client()
-BOT = bluesbot.BluesBot()
+BOT = BluesBot()
 # Figure out how to get the server without causing an infinite loop
 
 

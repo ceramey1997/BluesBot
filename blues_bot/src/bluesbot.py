@@ -1,26 +1,20 @@
 """handles message input, bot object"""
 # Work with Python 3.6
-
-# third-party
-import discord
-
-# local
-from src import events
-from src.queue import SongQueue
+from blues_bot.src.events import EventMessage
+from blues_bot.src.queue import SongQueue
 
 
 class BluesBot:
     """Class to create the bot object
 
     Attributes:
-        stopper (Stop_Sign): object to see if song is playing or not
         song_queue (SongQueue): song queue object to
                                 handle all queue interactions
         event_msg (event): the message sent in discord
     """
     def __init__(self):
         self.song_queue = SongQueue()
-        self.event_msg = events.Event_Message(self.song_queue)
+        self.event_msg = EventMessage(self.song_queue)
 
     async def on_message_start(self, client, message):
         """Handles the on-message-event

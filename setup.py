@@ -11,7 +11,6 @@ requirements = (
     open(os.path.join(setup_dir,'requirements.txt')).read().splitlines()
 )
 required = [line for line in requirements if not line.startswith('-')]
-required = ['spotipy']
 
 setup(name=package,
       version=version,
