@@ -6,7 +6,6 @@ import discord
 # local
 from src import events
 from src.queue import SongQueue
-from src import stop_sign
 
 
 class BluesBot:
@@ -18,7 +17,7 @@ class BluesBot:
         event_msg (event): the message sent in discord
     """
     def __init__(self):
-        self.stopper = stop_sign.Stop_Sign(False)
+        #self.stopper = stop_sign.Stop_Sign(False)
         self.song_queue = SongQueue()
         self.event_msg = events.Event_Message(self.song_queue)
 
@@ -36,7 +35,7 @@ class BluesBot:
             return
 
         if message.content.startswith('!'):
-            await self.event_msg.message_recieved(client, message, self.stopper)
+            await self.event_msg.message_recieved(client, message)
 
     async def on_ready_start(self, client):
         """Tells the user when the bot is ready to go
