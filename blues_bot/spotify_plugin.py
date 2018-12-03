@@ -6,7 +6,7 @@ import spotipy
 import spotipy.util as Util
 
 # local
-from blues_bot.exceptions import spotify_exceptions
+from blues_bot import spotify_exceptions
 
 
 __genres__ = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient',
