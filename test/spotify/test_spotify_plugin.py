@@ -7,20 +7,9 @@ from blues_bot import spotify_exceptions
 
 class TestSpotifyPlugin:
 
-    # @pytest.fixture
-    # def spotify(self):
-    #     mock.patch('blues_bot.spotify_plugin.spotipy.Spotify.util.prompt_for_user_token')
-    #     mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
-    #     return SpotifyPlugin()
 
-
-    # @pytest.fixture
-    # def spotify(self)
-
-    #@mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
-    #@mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
-    def test_get_song(self, mock_spotipy): #, mock_search, mock_spotipy, mock_prompt):
+    def test_get_song(self, mock_spotipy):
         search_value = {'tracks': {'items': [{'id':
                                               'Delta'}],
                                    'is': 'are'}}
@@ -28,28 +17,29 @@ class TestSpotifyPlugin:
         spotify.spotify.search.return_value = search_value
         result = spotify._get_song_("Delta")
 
-        #mock_search.assert_called_once_with('Delta', type='track')
         assert result == 'Delta'
 
-    # @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
-    # def test_get_song_error(self, mock_search, spotify):
-    #     mock_search.return_value = {'tracks': {'items': [], 'is': 'are'}}
-    #     with pytest.raises(spotify_exceptions.TrackError):
-    #         spotify._get_song_("notASong")
+    @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
+    def test_get_song_error(self, mock_spotify):
+        spotify = SpotifyPlugin()
+        spotify.spotify.search.return_value = {'tracks': {'items': [], 'is': 'are'}}
 
-    #     mock_search.assert_called_once_with('notASong', type='track')
+        with pytest.raises(spotify_exceptions.TrackError):
+            spotify._get_song_("notASong")
 
-    # @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
-    # def test_get_artist(self, mock_search, spotify):
-    #     search_value = {'artists': {'items': [{'id':
-    #                                            'zeta'}],
-    #                                 'is': 'are'}}
 
-    #     mock_search.return_value = search_value
-    #     result = spotify._get_artist_('zeta')
+    @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
+    def test_get_artist(self, mock_spotify):
+        search_value = {'artists': {'items': [{'id':
+                                               'zeta'}],
+                                    'is': 'are'}}
 
-    #     mock_search.assert_called_once_with('zeta', type='artist')
-    #     assert result == 'zeta'
+        spotify = SpotifyPlugin()
+        spotify.spotify.search.return_value = search_value
+        #mock_search.return_value = search_value
+        result = spotify._get_artist_('zeta')
+
+        assert result == 'zeta'
 
     # @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
     # def test_get_artist_error(self, mock_search, spotify):
