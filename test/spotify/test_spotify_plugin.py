@@ -9,10 +9,12 @@ class TestSpotifyPlugin:
 
 
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
-    def test_get_song(self, mock_spotipy):
+    @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
+    def test_get_song(self, mock_token, mock_spotipy):
         search_value = {'tracks': {'items': [{'id':
                                               'Delta'}],
                                    'is': 'are'}}
+        mock_token.return_value = 'BQBtotZ1DKFd0t9DPd-ymyeSq7DJvpT55ezczmoDcFQC5vWyB9X6voXLQCnzQwphz8OHKOWwU07ee28qC0xjy5dxxul0Fquut4Q7ijD6jMm_2jnnKt-KkvvXDfpEAVb7CvDawl55nCIehWJMdR7Vl6dR7cE9Y-2DLNDvP-fspfeRp2zZpHc'
         spotify = SpotifyPlugin()
         spotify.spotify.search.return_value = search_value
         result = spotify._get_song_("Delta")
