@@ -7,7 +7,6 @@ from blues_bot import spotify_exceptions
 
 class TestSpotifyPlugin:
 
-
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
     @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
     def test_get_song(self, mock_token, mock_spotipy):
@@ -31,7 +30,6 @@ class TestSpotifyPlugin:
         with pytest.raises(spotify_exceptions.TrackError):
             spotify._get_song_("notASong")
 
-
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
     @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
     def test_get_artist(self, mock_token, mock_spotify):
@@ -41,7 +39,6 @@ class TestSpotifyPlugin:
         mock_token.return_value = 'BQBtotZ1'
         spotify = SpotifyPlugin()
         spotify.spotify.search.return_value = search_value
-        #mock_search.return_value = search_value
         result = spotify._get_artist_('zeta')
 
         assert result == 'zeta'
@@ -73,7 +70,7 @@ class TestSpotifyPlugin:
                                  mock_playlist, mock_token):
         mock_token.return_value = 'BQBtotZ1'
         spotify = SpotifyPlugin()
-        
+
         playlist = 'Coles Playlist'
         username = 'cr1997'
         mock_playlist.return_value = {'tracks': {'items': {
@@ -110,7 +107,7 @@ class TestSpotifyPlugin:
         spotify.spotify.next.return_value = []
         spotify.spotify.user_playlists.return_value = {'items': [{'name': '1'}]}
         result = spotify.get_user_playlists()
-        
+
         assert result == ['1']
 
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify.categories')
