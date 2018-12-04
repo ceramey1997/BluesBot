@@ -5,9 +5,4 @@ install:
 - pip install -r test-requirements.txt
 - pip install tox-travis
 script:
-- printenv | grep SPOTIPY
-- printenv | grep DISCORD
 - tox
-before_install:
-- openssl aes-256-cbc -K $encrypted_c65d6799360d_key -iv $encrypted_c65d6799360d_iv
-  -in creds.json.enc -out creds.json -d

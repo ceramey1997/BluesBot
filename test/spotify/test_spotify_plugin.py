@@ -9,6 +9,7 @@ class TestSpotifyPlugin:
 
     @pytest.fixture
     def spotify(self):
+        mock.patch('blues_bot.spotify_plugin.spotipy')
         return SpotifyPlugin()
 
     @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
