@@ -9,7 +9,7 @@ class TestSpotifyPlugin:
 
     @pytest.fixture
     def spotify(self):
-        mock.patch('blues_bot.spotify_plugin.spotipy.Spotify.util')
+        mock.patch('blues_bot.spotify_plugin.spotipy.Spotify.util.prompt_for_user_token')
         mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
         return SpotifyPlugin()
 
