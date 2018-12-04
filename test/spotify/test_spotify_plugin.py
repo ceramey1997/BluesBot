@@ -13,7 +13,7 @@ class TestSpotifyPlugin:
     #     mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
     #     return SpotifyPlugin()
 
-    @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify.util.prompt_for_user_token')
+    @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
     @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
     def test_get_song(self, mock_search, user_token):
         search_value = {'tracks': {'items': [{'id':
