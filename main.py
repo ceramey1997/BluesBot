@@ -26,6 +26,7 @@ LOG.addHandler(FILE_HANDLER)
 
 # TOKEN = CREDS['DISCORD_TOKEN']
 TOKEN = os.environ['DISCORD_TOKEN']
+print(os.environ['DISCORD_TOKEN'])
 
 # pylint: disable=C0103
 client = discord.Client()
