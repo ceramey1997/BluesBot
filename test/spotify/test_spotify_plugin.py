@@ -14,15 +14,16 @@ class TestSpotifyPlugin:
         search_value = {'tracks': {'items': [{'id':
                                               'Delta'}],
                                    'is': 'are'}}
-        mock_token.return_value = 'BQBtotZ1DKFd0t9DPd-myeSq7DJvpT55ezczmoDcFQC5vWyB9X6voXLQCnzQwphz8OHKOWwU07ee28qC0xjy5dxxul0Fquut4Q7ijD6jMm_2jnnKt-KkvvXDfpEAVb7CvDawl55nCIehWJMdR7Vl6dR7cE9Y-2DLNDvP-fspfeRp2zZpHc'
-        spotify = SpotifyPlugin()
+        mock_token.return_value = 'BQBtotZ1'
         spotify.spotify.search.return_value = search_value
         result = spotify._get_song_("Delta")
 
         assert result == 'Delta'
 
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
-    def test_get_song_error(self, mock_spotify):
+    @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
+    def test_get_song_error(self, mock_token, mock_spotify):
+        mock_token.return_value = 'BQBtotZ1'
         spotify = SpotifyPlugin()
         spotify.spotify.search.return_value = {'tracks': {'items': [], 'is': 'are'}}
 
@@ -31,11 +32,12 @@ class TestSpotifyPlugin:
 
 
     @mock.patch('blues_bot.spotify_plugin.spotipy.Spotify')
-    def test_get_artist(self, mock_spotify):
+    @mock.patch('blues_bot.spotify_plugin.spotipy.util.prompt_for_user_token')
+    def test_get_artist(self, mock_token, mock_spotify):
         search_value = {'artists': {'items': [{'id':
                                                'zeta'}],
                                     'is': 'are'}}
-
+        mock_token.return_value = 'BQBtotZ1'
         spotify = SpotifyPlugin()
         spotify.spotify.search.return_value = search_value
         #mock_search.return_value = search_value
