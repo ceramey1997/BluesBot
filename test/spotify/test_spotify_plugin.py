@@ -7,16 +7,18 @@ from blues_bot import spotify_exceptions
 
 class TestSpotifyPlugin:
 
-    @pytest.fixture
-    def spotify(self):
-        mock.patch('blues_bot.spotify_plugin.spotipy')
-        return SpotifyPlugin()
+    # @pytest.fixture
+    # def spotify(self):
+    #     mock.patch('blues_bot.spotify_plugin.spotipy')
+    #     return SpotifyPlugin()
 
+    @mock.patch('blues_bot.spotify_plugin.spotipy')
     @mock.patch("blues_bot.spotify_plugin.spotipy.Spotify.search")
-    def test_get_song(self, mock_search, spotify):
+    def test_get_song(self, mock_search, spotify_mock):
         search_value = {'tracks': {'items': [{'id':
                                               'Delta'}],
                                    'is': 'are'}}
+        spotify = SpotifyPlugin()
         mock_search.return_value = search_value
         result = spotify._get_song_("Delta")
 
