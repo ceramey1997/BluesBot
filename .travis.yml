@@ -4,9 +4,8 @@ python:
 install:
 - pip install -r test-requirements.txt
 script:
-- touch creds.json
+- printenv
 - tox
-- rm -rf creds.json
 env:
   global:
   - secure: F2tqxpEMAte5iQg7N0ynsi4m444rMVHenB2PKzwDdOQ+KzWe1gmzDSfw6LQ2NvD3mU3uYX7imT4Ve333xhltMvBFO1pCaWWwxWYF4+IlKwHqf5wpyir6+TRudWETUfnZO6IEpYyDvs3NwVnHPOkV7T1r9FWCWDs1djFl3I5dXV5t9FsMGOAL1htPokqdlCAZ38h3Kg006PH9qt8+szULVUXLcTlkoEsCN3Ne7qum68pbJQ96HfjzITKz5GiJFku/h7YYNWndBud6RVZ0su23p6/c6s/b5V4AU60vS77JKvrdm8Yu3rgk64bFmsIHwwINMtsXRUOT3nRxplOfCqFEYoHjfZDw04Lz8rXjMmcKCYGKsQmrXZ83jPeWafceHV56kIr3o/HsRbvo5/l3/HjLGV3cGAcN1FWNVuqL3JNiJYlOHnT+98Y7DHqVZYhe3GN5l4+rHJjzpJ5F19fJx+4U3CL7ajul6qodFMC3hdxjBWWJylKWTWM5Edu7FJGlpZi2Og8kfTClFXvomgIWkW+86iyMiuGg1aYWqHj+Cbdl6EGPS/zSE2KofEHhuv4XQ4dbn9d2fg3YxAfU5MhzFCDcPeRPqoSiKDPM78sXjBnDY6LgTWnpPZflCCwdlZ9+I9Kt8x0ObR0qfzw1o6k+fwQkXmAJH8FNs5WPXiAdlAe66AI=
