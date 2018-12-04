@@ -1,3 +1,4 @@
+codecov
 mock
 pycodestyle>=2.4.0
 pylama-pylint>=3.0.1,<4.0.0
