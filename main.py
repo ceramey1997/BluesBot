@@ -3,6 +3,7 @@
 import json
 import logging
 
+import os
 import discord
 from blues_bot.src.bluesbot import BluesBot
 

@@ -12,7 +12,7 @@ from blues_bot.src.users.user import User
 from blues_bot.src.search_engine import search_yt
 from blues_bot.src.stop_sign import StopSign
 from blues_bot.spotify_plugin import SpotifyPlugin
-from blues_bot.exceptions import spotify_exceptions
+from blues_bot import spotify_exceptions
 
 
 class EventMessage:
