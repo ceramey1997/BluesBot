@@ -20,12 +20,11 @@ FILE_HANDLER.setFormatter(
     logging.Formatter('%(asctime)s-%(levelname)s-%(message)s'))
 LOG.addHandler(FILE_HANDLER)
 
-# FILE_OBJECT = open('creds.json', 'r')
-# CREDS = json.loads(FILE_OBJECT.read())
-# FILE_OBJECT.close()
+FILE_OBJECT = open('creds.json', 'r')
+CREDS = json.loads(FILE_OBJECT.read())
+FILE_OBJECT.close()
 
-# TOKEN = CREDS['DISCORD_TOKEN']
-TOKEN = os.environ['DISCORD_TOKEN']
+TOKEN = CREDS['DISCORD_TOKEN']
 
 # pylint: disable=C0103
 client = discord.Client()

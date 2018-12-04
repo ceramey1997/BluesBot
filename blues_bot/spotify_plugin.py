@@ -38,12 +38,12 @@ __genres__ = ['acoustic', 'afrobeat', 'alt-rock', 'alternative', 'ambient',
 class SpotifyPlugin:
     """Spotify Object; handles all Spotify interactionqs"""
     def __init__(self):
-        # file_object = open('creds.json', 'r')
-        # creds = json.loads(file_object.read())
-        # file_object.close()
-        # os.environ['SPOTIPY_CLIENT_ID'] = creds['SPOTIPY_CLIENT_ID']
-        # os.environ['SPOTIPY_CLIENT_SECRET'] = creds['SPOTIPY_CLIENT_SECRET']
-        # os.environ['SPOTIPY_REDIRECT_URI'] = creds['SPOTIPY_REDIRECT_URI']
+        file_object = open('creds.json', 'r')
+        creds = json.loads(file_object.read())
+        file_object.close()
+        os.environ['SPOTIPY_CLIENT_ID'] = creds['SPOTIPY_CLIENT_ID']
+        os.environ['SPOTIPY_CLIENT_SECRET'] = creds['SPOTIPY_CLIENT_SECRET']
+        os.environ['SPOTIPY_REDIRECT_URI'] = creds['SPOTIPY_REDIRECT_URI']
 
         token = Util.prompt_for_user_token(username='jay101pk',
                                            scope='user-library-read')

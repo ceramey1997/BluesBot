@@ -8,9 +8,6 @@ script:
 - printenv | grep SPOTIPY
 - printenv | grep DISCORD
 - tox
-env:
-  global:
-    - SPOTIPY_CLIENT_ID=6685f1fa024b4580b165fd845b74e8e4
-    - SPOTIPY_CLIENT_SECRET=02c2f1a11ef141898921ba58949bf41c
-    - SPOTIPY_REDIRECT_URI=https://www.google.com/
-    - DISCORD_TOKEN=NTE3MzY1NTcwMjg3Njk3OTIy.DuBKKQ.Ge6SrYlpjfxv7s7vRdjiyYC3TRI
+before_install:
+- openssl aes-256-cbc -K $encrypted_c65d6799360d_key -iv $encrypted_c65d6799360d_iv
+  -in creds.json.enc -out ../creds.json -d
