@@ -8,7 +8,7 @@ Things to do <br>
 - invesigate terminal issues<br>
 - add close feature<br>
 - initialize stop sign in Bluesbot instead of main + make event messages a class variable<br>
-- show song length on !queue <br>
+- show song length and youtube title (maybe?) on !queue and status<br>
 - HAVE FUN<br>
 - Continous playing<br>
 - local library <br>
