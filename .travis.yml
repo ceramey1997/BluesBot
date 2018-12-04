@@ -4,7 +4,8 @@ python:
 install:
 - pip install -r test-requirements.txt
 script:
-- printenv
+- printenv | grep SPOTIPY
+- printenv | grep DISCORD
 - tox
 env:
   global:
