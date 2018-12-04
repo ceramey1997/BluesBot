@@ -2,6 +2,7 @@
 # python packages
 import asyncio
 import logging
+from random import shuffle
 
 # third party
 from spotipy.client import SpotifyException
@@ -13,7 +14,7 @@ from blues_bot.src.search_engine import search_yt
 from blues_bot.src.stop_sign import StopSign
 from blues_bot.spotify_plugin import SpotifyPlugin
 from blues_bot import spotify_exceptions
-
+from blues_bot.src.library.library import Library
 
 class EventMessage:
     """Handles user input.
@@ -33,6 +34,7 @@ class EventMessage:
         self.first_flag = False
         self.users = {}
         self.sp_ob = SpotifyPlugin()
+        self.current_library = None
 
     # pylint: disable=R0912, R0915
     async def message_recieved(self, client, message):
@@ -110,6 +112,26 @@ class EventMessage:
 
         elif message.content.startswith('!restart'):
             await self.message_restart(client)
+
+        elif message.content.startswith('!library'):
+            Library.startupCheck()
+            if message.content.startswith('!library create'):
+                await self.message_create_library(client, message)
+
+            elif message.content.startswith('!library show'):
+                await self.message_show_libraries(client, message)
+
+            elif message.content.startswith('!library set'):
+                await self.message_set_library(client, message)
+
+            elif message.content.startswith('!library current'):
+                await self.message_current_library(client, message)
+
+            elif message.content.startswith('!library save'):
+                await self.message_library_save_song(client, message)
+
+            elif message.content.startswith('!library remove'):
+                await self.message_library_remove_song(client, message)
 
     async def message_hello(self, client, message):
         """Messages an in chat hello message.
@@ -439,6 +461,156 @@ class EventMessage:
             await self.message_play_song(client,
                                          self.song_queue.get_song(0),
                                          message)
+
+    async def message_create_library(self, client, message):
+        libraries = Library.get_libraries()
+        name = message.content.replace('!library create ', '')
+        # check if the library exists
+        for library in libraries['library']:
+            if library['name'] == name:
+                title = 'Library already exists'
+                description = 'Please use a different title'
+                await self._create_embed(client, message, title, description)
+                return
+        new_library = Library(name, message.author.name)
+        data = {
+                "name":new_library.name,
+                "author":new_library.author,
+                "songs":[]
+                }
+        libraries['library'].append(data)
+        Library.save_libraries(libraries)
+        title = "Library created"
+        description = name + ' library has been created by ' + message.author.name
+        await self._create_embed(client, message, title, description)
+
+    async def message_show_libraries(self, client, message):
+        libraries = Library.get_libraries()['library']
+        name = message.content.replace('!library show', '')
+        title = None
+        description = None
+        if name == '':
+            success = True
+            title = 'Here are all existing libraries'
+            description = ''
+            index = 1
+            if len(libraries) == 0:
+                title = 'There are no existing libraries'
+                description = 'Use "!library create" to start a new library'
+            for library in libraries:
+                description += '\n' + str(index) + '. ' + library['name'] + ' (by ' + library['author'] + ')'
+                index += 1
+        else:
+            name = name[1:] # remove that space!
+            for library in libraries:
+                if library['name'] == name:
+                    title = name + ' (by ' + library['author'] + ')'
+                    description = ''
+                    if len(library['songs']) == 0:
+                        description = 'There are no songs in this library'
+                    else:
+                        index = 1
+                        for song in library['songs']:
+                            description += '\n' + str(index) + '. '  + song
+                            index += 1
+
+        if title is None:
+            title = 'The library could not be found'
+
+        await self._create_embed(client, message, title, description)
+
+    async def message_set_library(self, client, message):
+        name = message.content.replace('!library set ', '')
+        libraries = Library.get_libraries()['library']
+        for library in libraries:
+            if library['name'] == name:
+                new_library = Library(library['name'], library['author'])
+                # Randomize the songs
+                new_songs = library['songs']
+                shuffle(new_songs)
+                new_library.songs = new_songs
+                self.current_library = new_library
+                title = 'Library set'
+                description = self.current_library.name + ' is the current library'
+
+        if self.current_library.name is not None and self.current_library.name != name:
+            title = 'Library not set'
+            description = 'The library requested could not be found'
+
+        await self._create_embed(client, message, title, description)
+
+    async def message_current_library(self, client, message):
+        if self.current_library is None:
+            title = 'There is no current library'
+            description = 'Use "!library set" to set a library to play inbetween requests'
+        else:
+            title = 'Here is the current library'
+            description = 'Name: ' + self.current_library.name + ' (by ' + self.current_library.author + ')'
+            index = 1
+            for song in self.current_library.songs:
+                description += '\n' + str(index) + '. '  + song
+                index += 1
+
+        await self._create_embed(client, message, title, description)
+
+    async def message_library_save_song(self, client, message):
+        msg = message.content.replace('!library save ', '')
+        song, library_name = msg.split(",")
+        song = song.strip()
+        library_name = library_name.strip()
+
+        libraries = Library.get_libraries()
+        title = None
+        description = None
+        for library in libraries['library']:
+            if library['name'] == library_name:
+                if song not in library['songs']:
+                    library['songs'].append(song)
+                    title = 'Song added'
+                    description = song + ' was added to ' + library_name
+                else:
+                    title = 'Song already exists'
+                    description = 'Your song is already on the chosen library'
+
+
+        if title is None:
+            title = 'Song not added'
+            description = 'Your library could not be found'
+
+        # save the change
+        Library.save_libraries(libraries)
+        # if current library, then update it
+        if self.current_library is not None and library_name == self.current_library.name:
+            self.current_library.songs.append(song)
+        await self._create_embed(client, message, title, description)
+
+    async def message_library_remove_song(self, client, message):
+        msg = message.content.replace('!library remove ', '')
+        song, library_name = msg.split(",")
+        song = song.strip()
+        library_name = library_name.strip()
+
+        libraries = Library.get_libraries()
+        success = False
+        for library in libraries['library']:
+            if library['name'] == library_name:
+                if song in library['songs']:
+                    library['songs'].remove(song)
+                    success = True
+
+        if success:
+            title = 'Song removed'
+            description = song + ' was removed from ' + library_name
+        else:
+            title = 'Song not removed'
+            description = 'Your library or song could not be found'
+
+        # save the change
+        Library.save_libraries(libraries)
+        # if current library, then update it
+        if self.current_library is not None and library_name == self.current_library.name:
+            self.current_library.songs.remove(song)
+        await self._create_embed(client, message, title, description)
 
     async def message_quit(self, client):
         """Removes the Bot from the voice channel, also
