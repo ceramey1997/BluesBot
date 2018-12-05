@@ -518,7 +518,6 @@ class EventMessage:
         description = name + ' library does not exist'
         await self._create_embed(client, message, title, description)
 
-
     async def message_show_libraries(self, client, message):
         """Shows a certain library's info or all libraries if not specified.
 

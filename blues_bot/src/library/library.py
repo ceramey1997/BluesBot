@@ -25,7 +25,8 @@ class Library:
     def startup_check():
         """Checks to see if library json file exists"""
         if not os.path.isfile(Library.path):
-            with io.open(os.path.join('blues_bot/src/library/', 'libraries.json'), 'w') as json_file:
+            with io.open(os.path.join(
+                    'blues_bot/src/library/', 'libraries.json'), 'w') as json_file:
                 json_file.write(json.dumps({"library": []}, indent=2))
 
     @staticmethod
