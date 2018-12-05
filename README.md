@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ceramey1997/BluesBot.svg?branch=master)](https://travis-ci.org/ceramey1997/BluesBot)
+
 This is our README <br><br>
 
 Things to do <br>
