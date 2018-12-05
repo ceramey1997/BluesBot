@@ -16,6 +16,8 @@ from blues_bot.spotify_plugin import SpotifyPlugin
 from blues_bot import spotify_exceptions
 from blues_bot.src.library.library import Library
 
+
+# pylint: disable=R0904
 class EventMessage:
     """Handles user input.
 
@@ -114,7 +116,7 @@ class EventMessage:
             await self.message_restart(client)
 
         elif message.content.startswith('!library'):
-            Library.startupCheck()
+            Library.startup_check()
             if message.content.startswith('!library create'):
                 await self.message_create_library(client, message)
 
@@ -132,6 +134,9 @@ class EventMessage:
 
             elif message.content.startswith('!library remove'):
                 await self.message_library_remove_song(client, message)
+
+            elif message.content.startswith('!library delete'):
+                await self.message_delete_library(client, message)
 
     async def message_hello(self, client, message):
         """Messages an in chat hello message.
@@ -463,6 +468,12 @@ class EventMessage:
                                          message)
 
     async def message_create_library(self, client, message):
+        """Creates a user library.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
         libraries = Library.get_libraries()
         name = message.content.replace('!library create ', '')
         # check if the library exists
@@ -474,9 +485,9 @@ class EventMessage:
                 return
         new_library = Library(name, message.author.name)
         data = {
-                "name":new_library.name,
-                "author":new_library.author,
-                "songs":[]
+            "name": new_library.name,
+            "author": new_library.author,
+            "songs": []
                 }
         libraries['library'].append(data)
         Library.save_libraries(libraries)
@@ -484,34 +495,65 @@ class EventMessage:
         description = name + ' library has been created by ' + message.author.name
         await self._create_embed(client, message, title, description)
 
+    async def message_delete_library(self, client, message):
+        """Deletes a user library.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+        libraries = Library.get_libraries()
+        name = message.content.replace('!library delete ', '')
+        # check if the library exists
+        for library in libraries['library']:
+            if library['name'] == name:
+                libraries['library'].remove(library)
+                Library.save_libraries(libraries)
+                title = 'Library deleted'
+                description = name + ' has been deleted'
+                await self._create_embed(client, message, title, description)
+                return
+
+        title = "Library could not be found"
+        description = name + ' library does not exist'
+        await self._create_embed(client, message, title, description)
+
+
     async def message_show_libraries(self, client, message):
+        """Shows a certain library's info or all libraries if not specified.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+
         libraries = Library.get_libraries()['library']
         name = message.content.replace('!library show', '')
         title = None
         description = None
         if name == '':
-            success = True
             title = 'Here are all existing libraries'
             description = ''
             index = 1
-            if len(libraries) == 0:
+            if not libraries:
                 title = 'There are no existing libraries'
                 description = 'Use "!library create" to start a new library'
             for library in libraries:
-                description += '\n' + str(index) + '. ' + library['name'] + ' (by ' + library['author'] + ')'
+                description += '\n' + str(index) + '. '
+                description += library['name'] + ' (by ' + library['author'] + ')'
                 index += 1
         else:
-            name = name[1:] # remove that space!
+            name = name[1:]
             for library in libraries:
                 if library['name'] == name:
                     title = name + ' (by ' + library['author'] + ')'
                     description = ''
-                    if len(library['songs']) == 0:
+                    if not library['songs']:
                         description = 'There are no songs in this library'
                     else:
                         index = 1
                         for song in library['songs']:
-                            description += '\n' + str(index) + '. '  + song
+                            description += '\n' + str(index) + '. ' + song
                             index += 1
 
         if title is None:
@@ -520,6 +562,13 @@ class EventMessage:
         await self._create_embed(client, message, title, description)
 
     async def message_set_library(self, client, message):
+        """Sets a library to be used when no requests are given.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+
         name = message.content.replace('!library set ', '')
         libraries = Library.get_libraries()['library']
         for library in libraries:
@@ -540,20 +589,35 @@ class EventMessage:
         await self._create_embed(client, message, title, description)
 
     async def message_current_library(self, client, message):
+        """Shows info for the current library that will play when no requests are given.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+
         if self.current_library is None:
             title = 'There is no current library'
             description = 'Use "!library set" to set a library to play inbetween requests'
         else:
             title = 'Here is the current library'
-            description = 'Name: ' + self.current_library.name + ' (by ' + self.current_library.author + ')'
+            description = 'Name: ' + self.current_library.name
+            description += ' (by ' + self.current_library.author + ')'
             index = 1
             for song in self.current_library.songs:
-                description += '\n' + str(index) + '. '  + song
+                description += '\n' + str(index) + '. ' + song
                 index += 1
 
         await self._create_embed(client, message, title, description)
 
     async def message_library_save_song(self, client, message):
+        """Saves a song to the specified library.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+
         msg = message.content.replace('!library save ', '')
         song, library_name = msg.split(",")
         song = song.strip()
@@ -572,7 +636,6 @@ class EventMessage:
                     title = 'Song already exists'
                     description = 'Your song is already on the chosen library'
 
-
         if title is None:
             title = 'Song not added'
             description = 'Your library could not be found'
@@ -585,6 +648,13 @@ class EventMessage:
         await self._create_embed(client, message, title, description)
 
     async def message_library_remove_song(self, client, message):
+        """Removes a song from the specified library.
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+
         msg = message.content.replace('!library remove ', '')
         song, library_name = msg.split(",")
         song = song.strip()
