@@ -2,7 +2,6 @@
 import io
 import json
 import os
-import six
 from random import shuffle
 
 
@@ -15,16 +14,15 @@ class Library:
         author (string): author name
     """
 
-    path = 'blues_bot/src/library/libraries.json'
-
-    def __init__(self):
+    def __init__(self, path):
+        self.path = path
+        self.startup_check()
         self.libraries = self.get_libraries()
 
     def startup_check(self):
         """Checks to see if library json file exists"""
-        if not os.path.isfile(Library.path):
-            with io.open(os.path.join(
-                    'blues_bot/src/library/', 'libraries.json'), 'w') as json_file:
+        if not os.path.isfile(self.path):
+            with io.open(self.path, 'w') as json_file:
                 json_file.write(json.dumps({"library": []}, indent=2))
 
     def save_libraries(self):
@@ -33,7 +31,8 @@ class Library:
         Args:
             data (dict): json data to be saved
         """
-        with open(Library.path, 'w') as outfile:
+        self.startup_check()
+        with open(self.path, 'w') as outfile:
             json.dump(self.libraries, outfile, indent=2)
 
     def get_libraries(self):
@@ -42,11 +41,11 @@ class Library:
         Return:
                 dict: dictionary of libraries
         """
-        with open(Library.path, 'r') as json_file:
+        with open(self.path, 'r') as json_file:
             if json_file.readlines():
                 json_file.seek(0)
             return json.load(json_file)
-        
+
     def add_library(self, new_lib_name, author, songs=None):
         """Creates a user library.
 
@@ -54,7 +53,7 @@ class Library:
             new_lib_name (Str): string name for new library
             author (Str): string username of creator
             songs (list): list of songs to add to the library
-        
+
         Return:
             (Str, Str): title and description for message
                 to be sent in discord.
@@ -89,14 +88,14 @@ class Library:
         gotten_lib = self._get_one_library(del_lib)
         if not gotten_lib:
             title = 'Library could not be found'
-            description = del_lib + 'library does not exist'
+            description = del_lib + ' library does not exist'
         else:
             self.libraries['library'].remove(gotten_lib)
             self.save_libraries()
             title = 'Library deleted'
             description = del_lib + ' has been deleted'
         return (title, description)
-    
+
     def show_libraries(self, name):
         """Show all libraries or specific library content
 
@@ -107,11 +106,12 @@ class Library:
         Return:
             (Str, Str): title and description for discord message
         """
+        title = None
         if name == '':
             title = 'Here are all the existing libraries'
             description = ''
             index = 1
-            if not self.libraries:
+            if not self.libraries['library']:
                 title = 'There are no existing libraries'
                 description = 'Use "!library create" to start a new library'
             for lib in self.libraries['library']:
@@ -131,9 +131,9 @@ class Library:
                         for song in library['songs']:
                             description += '\n' + str(index) + '. ' + song
                             index += 1
-
-        if title is None:
+        if not title:
             title = 'The library could not be found'
+            description = None
         return (title, description)
 
     def set_library(self, lib_to_set):
@@ -141,7 +141,7 @@ class Library:
 
         Args:
             lib_to_set (Str): the name of the library to set
-        
+
         Return:
             (Str, Str, dict): title and description to send in discord
                               library to set.
@@ -162,9 +162,9 @@ class Library:
         """Save song to a Library
 
         Args:
-            song (Str): name of the song to add to the library 
+            song (Str): name of the song to add to the library
             library_name (Str): name of the library to add a song to
-        
+
         Return:
             (Str, Str): title and description for message sent in discord
         """
@@ -182,20 +182,24 @@ class Library:
         self.save_libraries()
         return (title, description)
 
-    def remove_song(self, library_name, song):
+    def remove_song(self, library_name, song_in):
         """Removes song from a library
 
         Arg:
             library_name (Str): name of the library to remove a song from
             song (Str): name of the song to remove
-        
+
         Return:
             (Str, Str): title and description for message sent in discord
         """
         success = False
+        song = ''
         library = self._get_one_library(library_name)
+        if not library:
+            title = 'Library does not exist'
+            return (title, None)
         for song in library['songs']:
-            if song in library['songs']:
+            if song_in.lower().strip() == song.lower().strip():
                 library['songs'].remove(song)
                 success = True
         if success:
@@ -204,16 +208,15 @@ class Library:
         else:
             title = 'Song not removed'
             description = 'Your library or song could not be found'
-        
-        self.libraries.save_libraries()
+        self.save_libraries()
         return (title, description)
-        
+
     def _get_one_library(self, lib_name):
         """Gets a single library from library file
 
         Args:
             lib_name (Str): library name to get
-        
+
         Return:
             (dict): single library if found, otherwise none
         """

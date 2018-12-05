@@ -2,7 +2,6 @@
 # python packages
 import asyncio
 import logging
-from random import shuffle
 
 # third party
 from spotipy.client import SpotifyException
@@ -17,7 +16,7 @@ from blues_bot import spotify_exceptions
 from blues_bot.src.library.library import Library
 
 
-# pylint: disable=R0904
+# pylint: disable=R0904, R0902
 class EventMessage:
     """Handles user input.
 
@@ -36,7 +35,7 @@ class EventMessage:
         self.first_flag = False
         self.users = {}
         self.sp_ob = SpotifyPlugin()
-        self.libraries = Library()
+        self.libraries = Library('blues_bot/src/library/libraries.json')
         self.current_library = None
 
     # pylint: disable=R0912, R0915
@@ -352,7 +351,7 @@ class EventMessage:
             await self._goodbye(client, message)
             await voice_client.disconnect()
             self.first_flag = False
-        
+
     async def _change_status(self, client, song_name):
         """Changes the status of the bot
             (on the far right of discord where it shows
