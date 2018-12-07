@@ -351,6 +351,7 @@ class EventMessage:
             await self._goodbye(client, message)
             await voice_client.disconnect()
             self.first_flag = False
+            await self._change_status(client, None)
 
     async def _change_status(self, client, song_name):
         """Changes the status of the bot
