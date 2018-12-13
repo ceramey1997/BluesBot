@@ -3,18 +3,18 @@
 This is our README <br><br>
 
 Things to do <br>
-- fix global variable issue<br>
-- Update readme<br>
+- Make this readme look decent<br>
 - general cleanup<br>
 - implement spotify commands on bot side<br>
 - invesigate terminal issues<br>
-- add close feature<br>
-- initialize stop sign in Bluesbot instead of main + make event messages a class variable<br>
 - show song length on !queue <br>
 - HAVE FUN<br>
-- Continous playing<br>
-- local library <br>
+- Continous playing from library<br>
 - add error handling when youtube download fails<br>
+- fix playlist issues<br>
+- make song search less sensitive (check for similiarity in words)<br>
+- allow bot to join voice channels on more than one server<br>
+- potentially dockerize the bot so hosting is easy<br>
 
 to run this bot you need to install: <br>
   - opus <br>
