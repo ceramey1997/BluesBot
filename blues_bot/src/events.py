@@ -2,6 +2,10 @@
 # python packages
 import asyncio
 import logging
+import io
+import json
+import os
+import datetime
 
 # third party
 from spotipy.client import SpotifyException
@@ -37,6 +41,9 @@ class EventMessage:
         self.sp_ob = SpotifyPlugin()
         self.libraries = Library('blues_bot/src/library/libraries.json')
         self.current_library = None
+        self.voice_client = None
+        self.volume = .40
+        self.player = None
 
     # pylint: disable=R0912, R0915
     async def message_recieved(self, client, message):
@@ -67,11 +74,7 @@ class EventMessage:
                                                          message,
                                                          channel)
                     else:
-                        msg = message.content.replace('!play ', '')
-                        self.song_queue.add_song(msg)
-                        self.users[message.author.name].history.insert(0, msg)
-                        if self.song_queue.length_queue() == 1:
-                            await self.message_play_song(client, msg, message)
+                        await self.message_play_song(client, message)
                 break
             except SpotifyException:
                 self.sp_ob.refresh_token()
@@ -138,6 +141,33 @@ class EventMessage:
             elif message.content.startswith('!library delete'):
                 await self.message_delete_library(client, message)
 
+        elif message.content.startswith('!offline'):
+            if self._admin_check(message):
+                await self.message_offline(client)
+
+        elif message.content.startswith('!volume'):
+            if self._admin_check(message):
+                await self.message_volume(message)
+
+        elif message.content.startswith('!song'):
+            await self.message_song_info(client, message)
+
+    @classmethod
+    def _admin_check(cls, message):
+        """Checks to make sure the user calling a command is an admin
+
+        Args:
+            message (Message): message object from Discord
+        """
+        if not os.path.isfile('blues_bot/src/users/admins.json'):
+            with io.open('blues_bot/src/users/admins.json', 'w') as json_file:
+                json_file.write(json.dumps({"admins": []}, indent=2))
+        with open('blues_bot/src/users/admins.json', 'r') as json_file:
+            if json_file.readlines():
+                json_file.seek(0)
+            admins = json.load(json_file)['admins']
+        return message.author.name in admins
+
     async def message_hello(self, client, message):
         """Messages an in chat hello message.
 
@@ -158,6 +188,30 @@ class EventMessage:
         """
         msg = 'Later nerds!'
         await client.send_message(message.channel, msg, tts=True)
+
+    async def message_volume(self, message):
+        """Sets the volume of the player
+
+        Args:
+            message (Message): message object from Discord
+        """
+        volume = int(message.content.replace('!volume', ''))
+        if self.player is not None and 0 <= volume <= 100:
+            volume = volume / 100
+            self.volume = volume
+            self.player.volume = volume
+
+    async def message_play_song(self, client, message):
+        """Command that plays a single requested song
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+        msg = message.content.replace('!play ', '')
+        self.song_queue.add_song(msg)
+        self.users[message.author.name].history.insert(0, msg)
+        if self.song_queue.length_queue() == 1:
+            await self._play_song(client, msg, message)
 
     async def message_play_album(self, client, message, channel):
         """Takes the input of an album and plays if first thing
@@ -199,9 +253,7 @@ class EventMessage:
                                  title, description)
 
         if self.first_flag:
-            await self.message_play_song(client,
-                                         self.song_queue.get_song(0),
-                                         message)
+            await self._play_song(client, self.song_queue.get_song(0), message)
 
     async def message_play_playlist(self, client, message, channel):
         """Takes the input of an playlist and plays if first thing
@@ -244,9 +296,7 @@ class EventMessage:
                                  title, description)
 
         if self.first_flag:
-            await self.message_play_song(client,
-                                         self.song_queue.get_song(0),
-                                         message)
+            await self._play_song(client, self.song_queue.get_song(0), message)
 
     async def message_queue(self, client, message):
         """Sends a message of what is on the current Queue.
@@ -263,6 +313,24 @@ class EventMessage:
             index += 1
 
         await self._create_embed(client, message, title, msg)
+
+    async def message_song_info(self, client, message):
+        """Displays info of the current song
+
+        Args:
+            client (Client): client object from Discord
+            message (Message): message object from Discord
+        """
+        if self.player is not None:
+            title = self.player.title
+            description = 'URL: ' + self.player.url
+            description += '\nDuration: ' + str(datetime.timedelta(seconds=self.player.duration))
+            description += '\nUploader: ' + self.player.uploader
+            description += ', Date: ' + str(self.player.upload_date)
+            description += '\nLikes: ' + "{:,}".format(self.player.likes)
+            description += ', Disikes: ' + "{:,}".format(self.player.dislikes)
+            description += '\nViews: ' + "{:,}".format(self.player.views)
+            await self._create_embed(client, message, title, description)
 
     async def message_history(self, client, message):
         """Sends a message in chat channel of the user's last 10 adds
@@ -312,11 +380,40 @@ class EventMessage:
                 title = "you don't seem to be in the channel"
                 await self._create_embed(client, message, title=title)
                 return None
-            voice_client = await client.join_voice_channel(voice_channel)
-        voice_client = client.voice_client_in(client.get_server(server_id))
-        return voice_client
+            self.voice_client = await client.join_voice_channel(voice_channel)
+        self.voice_client = client.voice_client_in(client.get_server(server_id))
 
-    async def message_play_song(self, client, query, message):
+    async def _create_player(self, client, query, message):
+        """Creates a ytdl player for a requested search query
+
+        Args:
+            client (Client): client object from Discord
+            query (String): youtube search input
+            message (Message): message object from Discord
+        """
+        if self.voice_client is None:
+            await self._join(client, message)
+        if self.voice_client is None:
+            return None
+        url = search_yt(query)
+        self.player = await self.voice_client.create_ytdl_player(url)
+        self.player.volume = self.volume
+
+    async def _wait_for_song(self, player):
+        """Waits for song to be completed
+
+        Args:
+            player (Player): player object from Youtube_dl
+        """
+        # pylint: disable=W0612
+        for i in range(int(player.duration)):
+            await asyncio.sleep(1)
+            if self.stopper.get_flag():
+                player.stop()
+                self.stopper.set_flag(False)
+                break
+
+    async def _play_song(self, client, query, message):
         """Takes a song and query's youtube and joins the server
            if necessary, and plays the song.
 
@@ -326,30 +423,19 @@ class EventMessage:
             message (Message): message object from Discord
         """
         self.first_flag = False
-        voice_client = await self._join(client, message)
-        if voice_client is None:
+        await self._create_player(client, query, message)
+        if self.player is None:
             return
-        url = search_yt(query)
-        player = await voice_client.create_ytdl_player(url)
-        player.volume = 0.4  # 0.25
-        player.start()
-        await self._change_status(client, query)
+        self.player.start()
+        await self._change_status(client, self.player.title)
 
-        # pylint: disable=W0612
-        for i in range(int(player.duration)):
-            await asyncio.sleep(1)
-            if self.stopper.get_flag():
-                player.stop()
-                self.stopper.set_flag(False)
-                break
+        await self._wait_for_song(self.player)
         self.song_queue.pop_song()
         if self.song_queue.length_queue() > 0:
-            await self.message_play_song(client,
-                                         self.song_queue.get_song(0),
-                                         message)
+            await self._play_song(client, self.song_queue.get_song(0), message)
         else:
             await self._goodbye(client, message)
-            await voice_client.disconnect()
+            await self.voice_client.disconnect()
             self.first_flag = False
             await self._change_status(client, None)
 
@@ -464,9 +550,7 @@ class EventMessage:
         await self._create_embed(client, message, title, description)
 
         if self.first_flag:
-            await self.message_play_song(client,
-                                         self.song_queue.get_song(0),
-                                         message)
+            await self._play_song(client, self.song_queue.get_song(0), message)
 
     async def message_create_library(self, client, message):
         """Creates a user library.
@@ -587,6 +671,14 @@ class EventMessage:
         """Restarts the song that is currently playing"""
         self.song_queue.insert_song(0, self.song_queue.get_song(0))
         await self.message_skip(client)
+
+    async def message_offline(self, client):
+        """Stops the bot entirely
+
+        Args:
+            client (Client): client object from Discord
+        """
+        await client.logout()
 
     async def help(self, client, message):
         """prints an embed message with help statements
