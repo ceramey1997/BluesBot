@@ -17,8 +17,14 @@ Things to do <br>
 - add error handling when youtube download fails<br>
 
 to run this bot you need to install: <br>
-  - opus <br>
+pip install the following: <br>
   - youtube_dl <br>
-  - ffmpeg <br>
+  - bs4 <br>
+  - discord.py <br>
+  - spotipy <br>
+  - PyNaCl <br>
+sudo apt-get install the following: <br>
+  - libopus0 opus-tools
+  - ffmpeg
   <br>
  and you need to run no more than python 3.6 but in the 3s <br>
